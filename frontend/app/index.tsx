@@ -74,7 +74,7 @@ export default function HomeScreen() {
         <View style={styles.heroSection}>
           <View style={styles.heroOverlay}>
             <Text style={styles.heroTitle}>
-              {settings?.business_name || 'Aishaartistry'}
+              {settings?.business_name || 'Aishartistry'}
             </Text>
             <Text style={styles.heroSubtitle}>
               {settings?.tagline || 'Beautiful Henna Art for Every Occasion'}
