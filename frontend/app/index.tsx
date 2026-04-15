@@ -17,13 +17,13 @@ const { width } = Dimensions.get('window');
 const EXPO_PUBLIC_BACKEND_URL = process.env.EXPO_PUBLIC_BACKEND_URL;
 
 const COLORS = {
-  primary: '#8B4513',
-  secondary: '#D4A574',
-  accent: '#C9A96E',
-  background: '#FFF8F0',
-  text: '#3D2914',
+  primary: '#D4688A',
+  secondary: '#F5C6D0',
+  accent: '#E8A0B5',
+  background: '#FFF5F8',
+  text: '#3A1F2E',
   white: '#FFFFFF',
-  lightBg: '#FDF5ED',
+  lightBg: '#FFF0F5',
 };
 
 interface BusinessSettings {
@@ -249,7 +249,7 @@ const styles = StyleSheet.create({
   },
   heroOverlay: {
     flex: 1,
-    backgroundColor: 'rgba(139, 69, 19, 0.85)',
+    backgroundColor: 'rgba(212, 104, 138, 0.85)',
     justifyContent: 'center',
     alignItems: 'center',
     padding: 24,

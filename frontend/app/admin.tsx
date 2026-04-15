@@ -20,13 +20,13 @@ import * as ImagePicker from 'expo-image-picker';
 const EXPO_PUBLIC_BACKEND_URL = process.env.EXPO_PUBLIC_BACKEND_URL;
 
 const COLORS = {
-  primary: '#8B4513',
-  secondary: '#D4A574',
-  accent: '#C9A96E',
-  background: '#FFF8F0',
-  text: '#3D2914',
+  primary: '#D4688A',
+  secondary: '#F5C6D0',
+  accent: '#E8A0B5',
+  background: '#FFF5F8',
+  text: '#3A1F2E',
   white: '#FFFFFF',
-  lightBg: '#FDF5ED',
+  lightBg: '#FFF0F5',
   success: '#4CAF50',
   warning: '#FF9800',
   error: '#F44336',
@@ -104,9 +104,17 @@ export default function AdminScreen() {
   const [editDuration, setEditDuration] = useState('');
   const [savingService, setSavingService] = useState(false);
 
+  // Auth state
+  const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const [loginPassword, setLoginPassword] = useState('');
+  const [loginError, setLoginError] = useState('');
+  const [loginLoading, setLoginLoading] = useState(false);
+
   useEffect(() => {
-    fetchData();
-  }, []);
+    if (isAuthenticated) {
+      fetchData();
+    }
+  }, [isAuthenticated]);
 
   const fetchData = async () => {
     try {
@@ -333,6 +341,28 @@ export default function AdminScreen() {
     setEditDuration(String(service.duration_minutes));
   };
 
+  const handleLogin = async () => {
+    setLoginLoading(true);
+    setLoginError('');
+    try {
+      const response = await fetch(`${EXPO_PUBLIC_BACKEND_URL}/api/admin/login`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ password: loginPassword }),
+      });
+      if (response.ok) {
+        setIsAuthenticated(true);
+        fetchData();
+      } else {
+        setLoginError('Incorrect password');
+      }
+    } catch (error) {
+      setLoginError('Connection error. Please try again.');
+    } finally {
+      setLoginLoading(false);
+    }
+  };
+
   const saveServiceEdit = async () => {
     if (!editingService) return;
     setSavingService(true);
@@ -367,11 +397,55 @@ export default function AdminScreen() {
     }
   };
 
-  if (loading) {
+  if (loading && isAuthenticated) {
     return (
       <View style={[styles.container, styles.centered]}>
         <ActivityIndicator size="large" color={COLORS.primary} />
       </View>
+    );
+  }
+
+  if (!isAuthenticated) {
+    return (
+      <SafeAreaView style={styles.container} edges={['bottom']}>
+        <View style={styles.loginContainer}>
+          <View style={styles.loginCard}>
+            <View style={styles.loginIconCircle}>
+              <Ionicons name="lock-closed" size={36} color={COLORS.primary} />
+            </View>
+            <Text style={styles.loginTitle}>Admin Login</Text>
+            <Text style={styles.loginSubtitle}>Enter your password to access the dashboard</Text>
+            {loginError ? (
+              <View style={styles.loginErrorBox}>
+                <Ionicons name="alert-circle" size={16} color={COLORS.error} />
+                <Text style={styles.loginErrorText}>{loginError}</Text>
+              </View>
+            ) : null}
+            <TextInput
+              testID="admin-password-input"
+              style={styles.loginInput}
+              placeholder="Password"
+              value={loginPassword}
+              onChangeText={setLoginPassword}
+              secureTextEntry
+              placeholderTextColor="#999"
+              onSubmitEditing={handleLogin}
+            />
+            <TouchableOpacity
+              testID="admin-login-btn"
+              style={[styles.loginButton, loginLoading && styles.saveButtonDisabled]}
+              onPress={handleLogin}
+              disabled={loginLoading}
+            >
+              {loginLoading ? (
+                <ActivityIndicator color={COLORS.white} />
+              ) : (
+                <Text style={styles.loginButtonText}>Log In</Text>
+              )}
+            </TouchableOpacity>
+          </View>
+        </View>
+      </SafeAreaView>
     );
   }
 
@@ -1587,5 +1661,85 @@ const styles = StyleSheet.create({
   serviceEditMeta: {
     fontSize: 12,
     color: '#999',
+  },
+  loginContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    padding: 24,
+  },
+  loginCard: {
+    backgroundColor: COLORS.white,
+    borderRadius: 24,
+    padding: 40,
+    alignItems: 'center',
+    width: '100%',
+    maxWidth: 400,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.1,
+    shadowRadius: 16,
+    elevation: 5,
+  },
+  loginIconCircle: {
+    width: 80,
+    height: 80,
+    borderRadius: 40,
+    backgroundColor: COLORS.lightBg,
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginBottom: 8,
+  },
+  loginTitle: {
+    fontSize: 26,
+    fontWeight: 'bold',
+    color: COLORS.text,
+    marginTop: 12,
+    marginBottom: 6,
+  },
+  loginSubtitle: {
+    fontSize: 14,
+    color: '#888',
+    marginBottom: 24,
+    textAlign: 'center',
+  },
+  loginErrorBox: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#FFF0F0',
+    paddingHorizontal: 16,
+    paddingVertical: 10,
+    borderRadius: 10,
+    marginBottom: 16,
+    gap: 8,
+    width: '100%',
+  },
+  loginErrorText: {
+    fontSize: 14,
+    color: COLORS.error,
+  },
+  loginInput: {
+    backgroundColor: COLORS.lightBg,
+    borderRadius: 12,
+    padding: 16,
+    fontSize: 16,
+    color: COLORS.text,
+    borderWidth: 1,
+    borderColor: '#e0e0e0',
+    width: '100%',
+    marginBottom: 16,
+    textAlign: 'center',
+  },
+  loginButton: {
+    backgroundColor: COLORS.primary,
+    paddingVertical: 16,
+    borderRadius: 12,
+    width: '100%',
+    alignItems: 'center',
+  },
+  loginButtonText: {
+    color: COLORS.white,
+    fontSize: 18,
+    fontWeight: '600',
   },
 });

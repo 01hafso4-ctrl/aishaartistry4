@@ -168,11 +168,22 @@ class BusinessSettingsUpdate(BaseModel):
     studio_address: Optional[str] = None
     about_text: Optional[str] = None
 
+class AdminLogin(BaseModel):
+    password: str
+
 # Routes
 
 @api_router.get("/")
 async def root():
     return {"message": "Henna Business API"}
+
+# Admin Login
+@api_router.post("/admin/login")
+async def admin_login(login: AdminLogin):
+    admin_password = os.environ.get('ADMIN_PASSWORD')
+    if login.password == admin_password:
+        return {"success": True}
+    raise HTTPException(status_code=401, detail="Invalid password")
 
 # Services Routes
 @api_router.get("/services", response_model=List[Service])

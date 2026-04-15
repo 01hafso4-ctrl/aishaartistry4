@@ -18,13 +18,13 @@ const { width, height } = Dimensions.get('window');
 const EXPO_PUBLIC_BACKEND_URL = process.env.EXPO_PUBLIC_BACKEND_URL;
 
 const COLORS = {
-  primary: '#8B4513',
-  secondary: '#D4A574',
-  accent: '#C9A96E',
-  background: '#FFF8F0',
-  text: '#3D2914',
+  primary: '#D4688A',
+  secondary: '#F5C6D0',
+  accent: '#E8A0B5',
+  background: '#FFF5F8',
+  text: '#3A1F2E',
   white: '#FFFFFF',
-  lightBg: '#FDF5ED',
+  lightBg: '#FFF0F5',
 };
 
 // Placeholder images from the curated list
