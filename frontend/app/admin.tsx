@@ -81,20 +81,39 @@ export default function AdminScreen() {
   const [galleryCategory, setGalleryCategory] = useState('');
   const [uploadingImage, setUploadingImage] = useState(false);
 
+  // Settings state
+  const [settingsBusinessName, setSettingsBusinessName] = useState('');
+  const [settingsTagline, setSettingsTagline] = useState('');
+  const [settingsAbout, setSettingsAbout] = useState('');
+  const [settingsPhone, setSettingsPhone] = useState('');
+  const [settingsEmail, setSettingsEmail] = useState('');
+  const [settingsInstagram, setSettingsInstagram] = useState('');
+  const [settingsAddress, setSettingsAddress] = useState('');
+  const [savingSettings, setSavingSettings] = useState(false);
+
   useEffect(() => {
     fetchData();
   }, []);
 
   const fetchData = async () => {
     try {
-      const [bookingsRes, contactsRes] = await Promise.all([
+      const [bookingsRes, contactsRes, settingsRes] = await Promise.all([
         fetch(`${EXPO_PUBLIC_BACKEND_URL}/api/bookings`),
         fetch(`${EXPO_PUBLIC_BACKEND_URL}/api/contacts`),
+        fetch(`${EXPO_PUBLIC_BACKEND_URL}/api/settings`),
       ]);
       const bookingsData = await bookingsRes.json();
       const contactsData = await contactsRes.json();
+      const settingsData = await settingsRes.json();
       setBookings(bookingsData);
       setContacts(contactsData);
+      setSettingsBusinessName(settingsData.business_name || '');
+      setSettingsTagline(settingsData.tagline || '');
+      setSettingsAbout(settingsData.about_text || '');
+      setSettingsPhone(settingsData.phone || '');
+      setSettingsEmail(settingsData.email || '');
+      setSettingsInstagram(settingsData.instagram || '');
+      setSettingsAddress(settingsData.studio_address || '');
     } catch (error) {
       console.error('Error fetching data:', error);
     } finally {
@@ -206,6 +225,34 @@ export default function AdminScreen() {
   const pendingBookings = bookings.filter((b) => b.status === 'pending').length;
   const unreadMessages = contacts.filter((c) => !c.is_read).length;
 
+  const saveSettings = async () => {
+    setSavingSettings(true);
+    try {
+      const response = await fetch(`${EXPO_PUBLIC_BACKEND_URL}/api/settings`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          business_name: settingsBusinessName,
+          tagline: settingsTagline,
+          about_text: settingsAbout,
+          phone: settingsPhone,
+          email: settingsEmail,
+          instagram: settingsInstagram,
+          studio_address: settingsAddress,
+        }),
+      });
+      if (response.ok) {
+        Alert.alert('Saved!', 'Your business info has been updated.');
+      } else {
+        throw new Error('Save failed');
+      }
+    } catch (error) {
+      Alert.alert('Error', 'Failed to save settings. Please try again.');
+    } finally {
+      setSavingSettings(false);
+    }
+  };
+
   if (loading) {
     return (
       <View style={[styles.container, styles.centered]}>
@@ -294,6 +341,25 @@ export default function AdminScreen() {
             ]}
           >
             Gallery
+          </Text>
+        </TouchableOpacity>
+
+        <TouchableOpacity
+          style={[styles.tab, activeTab === 'settings' && styles.tabActive]}
+          onPress={() => setActiveTab('settings')}
+        >
+          <Ionicons
+            name="create"
+            size={20}
+            color={activeTab === 'settings' ? COLORS.primary : '#888'}
+          />
+          <Text
+            style={[
+              styles.tabText,
+              activeTab === 'settings' && styles.tabTextActive,
+            ]}
+          >
+            Settings
           </Text>
         </TouchableOpacity>
       </View>
@@ -422,6 +488,126 @@ export default function AdminScreen() {
               </Text>
             </View>
           </View>
+        )}
+
+        {activeTab === 'settings' && (
+          <KeyboardAvoidingView
+            behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+          >
+            <View style={styles.settingsSection}>
+              <Text style={styles.settingsSectionTitle}>Business Info</Text>
+
+              <View style={styles.inputGroup}>
+                <Text style={styles.label}>Business Name</Text>
+                <TextInput
+                  testID="settings-business-name"
+                  style={styles.input}
+                  placeholder="Your business name"
+                  value={settingsBusinessName}
+                  onChangeText={setSettingsBusinessName}
+                  placeholderTextColor="#999"
+                />
+              </View>
+
+              <View style={styles.inputGroup}>
+                <Text style={styles.label}>Tagline</Text>
+                <TextInput
+                  testID="settings-tagline"
+                  style={styles.input}
+                  placeholder="Short tagline"
+                  value={settingsTagline}
+                  onChangeText={setSettingsTagline}
+                  placeholderTextColor="#999"
+                />
+              </View>
+
+              <View style={styles.inputGroup}>
+                <Text style={styles.label}>About Us Text</Text>
+                <TextInput
+                  testID="settings-about-text"
+                  style={[styles.input, styles.aboutTextArea]}
+                  placeholder="Write your about us text here..."
+                  value={settingsAbout}
+                  onChangeText={setSettingsAbout}
+                  multiline
+                  numberOfLines={8}
+                  textAlignVertical="top"
+                  placeholderTextColor="#999"
+                />
+                <Text style={styles.charCount}>{settingsAbout.length} characters</Text>
+              </View>
+
+              <Text style={[styles.settingsSectionTitle, { marginTop: 24 }]}>Contact Details</Text>
+
+              <View style={styles.inputGroup}>
+                <Text style={styles.label}>Phone Number</Text>
+                <TextInput
+                  testID="settings-phone"
+                  style={styles.input}
+                  placeholder="e.g. 46655648"
+                  value={settingsPhone}
+                  onChangeText={setSettingsPhone}
+                  keyboardType="phone-pad"
+                  placeholderTextColor="#999"
+                />
+              </View>
+
+              <View style={styles.inputGroup}>
+                <Text style={styles.label}>Email</Text>
+                <TextInput
+                  testID="settings-email"
+                  style={styles.input}
+                  placeholder="your@email.com"
+                  value={settingsEmail}
+                  onChangeText={setSettingsEmail}
+                  keyboardType="email-address"
+                  autoCapitalize="none"
+                  placeholderTextColor="#999"
+                />
+              </View>
+
+              <View style={styles.inputGroup}>
+                <Text style={styles.label}>Instagram Username</Text>
+                <TextInput
+                  testID="settings-instagram"
+                  style={styles.input}
+                  placeholder="@yourusername"
+                  value={settingsInstagram}
+                  onChangeText={setSettingsInstagram}
+                  autoCapitalize="none"
+                  placeholderTextColor="#999"
+                />
+              </View>
+
+              <View style={styles.inputGroup}>
+                <Text style={styles.label}>Studio Address</Text>
+                <TextInput
+                  testID="settings-address"
+                  style={styles.input}
+                  placeholder="Your studio address"
+                  value={settingsAddress}
+                  onChangeText={setSettingsAddress}
+                  placeholderTextColor="#999"
+                />
+              </View>
+
+              <TouchableOpacity
+                testID="save-settings-btn"
+                style={[styles.saveButton, savingSettings && styles.saveButtonDisabled]}
+                onPress={saveSettings}
+                disabled={savingSettings}
+              >
+                {savingSettings ? (
+                  <ActivityIndicator color={COLORS.white} />
+                ) : (
+                  <>
+                    <Ionicons name="save" size={20} color={COLORS.white} />
+                    <Text style={styles.saveButtonText}>Save Changes</Text>
+                  </>
+                )}
+              </TouchableOpacity>
+            </View>
+          </KeyboardAvoidingView>
         )}
       </ScrollView>
 
@@ -947,5 +1133,44 @@ const styles = StyleSheet.create({
     fontSize: 16,
     fontWeight: '500',
     color: COLORS.primary,
+  },
+  settingsSection: {
+    backgroundColor: COLORS.white,
+    borderRadius: 12,
+    padding: 20,
+  },
+  settingsSectionTitle: {
+    fontSize: 18,
+    fontWeight: 'bold',
+    color: COLORS.text,
+    marginBottom: 16,
+  },
+  aboutTextArea: {
+    minHeight: 160,
+    textAlignVertical: 'top',
+  },
+  charCount: {
+    fontSize: 12,
+    color: '#999',
+    textAlign: 'right',
+    marginTop: 4,
+  },
+  saveButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: COLORS.primary,
+    paddingVertical: 16,
+    borderRadius: 12,
+    gap: 10,
+    marginTop: 16,
+  },
+  saveButtonDisabled: {
+    opacity: 0.7,
+  },
+  saveButtonText: {
+    fontSize: 18,
+    fontWeight: '600',
+    color: COLORS.white,
   },
 });
