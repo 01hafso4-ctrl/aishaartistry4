@@ -1,7 +1,11 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { Tabs } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
-import { View, StyleSheet } from 'react-native';
+import { View, Text, TouchableOpacity, StyleSheet, Dimensions, Platform } from 'react-native';
+import { useRouter, usePathname } from 'expo-router';
+
+const { width } = Dimensions.get('window');
+const isWide = width > 768;
 
 const COLORS = {
   primary: '#8B4513',
@@ -13,93 +17,175 @@ const COLORS = {
   lightBg: '#FDF5ED',
 };
 
-export default function TabLayout() {
+function WebNavBar() {
+  const router = useRouter();
+  const pathname = usePathname();
+  const [menuOpen, setMenuOpen] = useState(false);
+
+  const navItems = [
+    { label: 'Home', path: '/', icon: 'home-outline' },
+    { label: 'Services', path: '/services', icon: 'sparkles-outline' },
+    { label: 'Gallery', path: '/gallery', icon: 'images-outline' },
+    { label: 'Book Now', path: '/book', icon: 'calendar-outline' },
+    { label: 'Contact', path: '/contact', icon: 'mail-outline' },
+    { label: 'Admin', path: '/admin', icon: 'settings-outline' },
+  ];
+
+  const isActive = (path: string) => {
+    if (path === '/') return pathname === '/' || pathname === '';
+    return pathname.startsWith(path);
+  };
+
   return (
-    <Tabs
-      screenOptions={{
-        tabBarActiveTintColor: COLORS.primary,
-        tabBarInactiveTintColor: '#999',
-        tabBarStyle: {
-          backgroundColor: COLORS.white,
-          borderTopWidth: 1,
-          borderTopColor: COLORS.secondary,
-          height: 60,
-          paddingBottom: 8,
-          paddingTop: 8,
-        },
-        tabBarLabelStyle: {
-          fontSize: 11,
-          fontWeight: '500',
-        },
-        headerStyle: {
-          backgroundColor: COLORS.primary,
-        },
-        headerTintColor: COLORS.white,
-        headerTitleStyle: {
-          fontWeight: 'bold',
-        },
-      }}
-    >
-      <Tabs.Screen
-        name="index"
-        options={{
-          title: 'Home',
-          headerShown: false,
-          tabBarIcon: ({ color, size }) => (
-            <Ionicons name="home-outline" size={size} color={color} />
-          ),
-        }}
-      />
-      <Tabs.Screen
-        name="services"
-        options={{
-          title: 'Services',
-          headerTitle: 'Our Services',
-          tabBarIcon: ({ color, size }) => (
-            <Ionicons name="sparkles-outline" size={size} color={color} />
-          ),
-        }}
-      />
-      <Tabs.Screen
-        name="gallery"
-        options={{
-          title: 'Gallery',
-          headerTitle: 'Design Gallery',
-          tabBarIcon: ({ color, size }) => (
-            <Ionicons name="images-outline" size={size} color={color} />
-          ),
-        }}
-      />
-      <Tabs.Screen
-        name="book"
-        options={{
-          title: 'Book',
-          headerTitle: 'Book Appointment',
-          tabBarIcon: ({ color, size }) => (
-            <Ionicons name="calendar-outline" size={size} color={color} />
-          ),
-        }}
-      />
-      <Tabs.Screen
-        name="contact"
-        options={{
-          title: 'Contact',
-          headerTitle: 'Contact Us',
-          tabBarIcon: ({ color, size }) => (
-            <Ionicons name="mail-outline" size={size} color={color} />
-          ),
-        }}
-      />
-      <Tabs.Screen
-        name="admin"
-        options={{
-          title: 'Admin',
-          headerTitle: 'Admin Dashboard',
-          tabBarIcon: ({ color, size }) => (
-            <Ionicons name="settings-outline" size={size} color={color} />
-          ),
-        }}
-      />
-    </Tabs>
+    <View style={styles.navContainer}>
+      <View style={styles.navInner}>
+        <TouchableOpacity onPress={() => router.push('/')} style={styles.logoContainer}>
+          <Ionicons name="leaf" size={24} color={COLORS.accent} />
+          <Text style={styles.logoText}>Henna Artistry</Text>
+        </TouchableOpacity>
+
+        {isWide ? (
+          <View style={styles.navLinks}>
+            {navItems.map((item) => (
+              <TouchableOpacity
+                key={item.path}
+                style={[styles.navLink, isActive(item.path) && styles.navLinkActive]}
+                onPress={() => router.push(item.path as any)}
+              >
+                <Text style={[styles.navLinkText, isActive(item.path) && styles.navLinkTextActive]}>
+                  {item.label}
+                </Text>
+              </TouchableOpacity>
+            ))}
+          </View>
+        ) : (
+          <TouchableOpacity onPress={() => setMenuOpen(!menuOpen)} style={styles.hamburger}>
+            <Ionicons name={menuOpen ? 'close' : 'menu'} size={28} color={COLORS.white} />
+          </TouchableOpacity>
+        )}
+      </View>
+
+      {!isWide && menuOpen && (
+        <View style={styles.mobileMenu}>
+          {navItems.map((item) => (
+            <TouchableOpacity
+              key={item.path}
+              style={[styles.mobileMenuItem, isActive(item.path) && styles.mobileMenuItemActive]}
+              onPress={() => {
+                router.push(item.path as any);
+                setMenuOpen(false);
+              }}
+            >
+              <Ionicons name={item.icon as any} size={20} color={isActive(item.path) ? COLORS.accent : COLORS.white} />
+              <Text style={[styles.mobileMenuText, isActive(item.path) && styles.mobileMenuTextActive]}>
+                {item.label}
+              </Text>
+            </TouchableOpacity>
+          ))}
+        </View>
+      )}
+    </View>
   );
 }
+
+export default function TabLayout() {
+  return (
+    <View style={{ flex: 1, backgroundColor: COLORS.background }}>
+      <WebNavBar />
+      <Tabs
+        screenOptions={{
+          tabBarStyle: { display: 'none' },
+          headerShown: false,
+        }}
+      >
+        <Tabs.Screen name="index" />
+        <Tabs.Screen name="services" />
+        <Tabs.Screen name="gallery" />
+        <Tabs.Screen name="book" />
+        <Tabs.Screen name="contact" />
+        <Tabs.Screen name="admin" />
+      </Tabs>
+    </View>
+  );
+}
+
+const styles = StyleSheet.create({
+  navContainer: {
+    backgroundColor: COLORS.primary,
+    ...(Platform.OS === 'web' ? { position: 'sticky' as any, top: 0, zIndex: 1000 } : {}),
+  },
+  navInner: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    paddingHorizontal: 24,
+    paddingVertical: 14,
+    maxWidth: 1200,
+    alignSelf: 'center',
+    width: '100%',
+  },
+  logoContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 10,
+  },
+  logoText: {
+    fontSize: 20,
+    fontWeight: 'bold',
+    color: COLORS.white,
+  },
+  navLinks: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+  },
+  navLink: {
+    paddingHorizontal: 14,
+    paddingVertical: 8,
+    borderRadius: 8,
+  },
+  navLinkActive: {
+    backgroundColor: 'rgba(255,255,255,0.15)',
+  },
+  navLinkText: {
+    fontSize: 15,
+    color: COLORS.secondary,
+    fontWeight: '500',
+  },
+  navLinkTextActive: {
+    color: COLORS.white,
+    fontWeight: '700',
+  },
+  hamburger: {
+    padding: 4,
+  },
+  mobileMenu: {
+    backgroundColor: COLORS.primary,
+    borderTopWidth: 1,
+    borderTopColor: 'rgba(255,255,255,0.1)',
+    paddingVertical: 8,
+    paddingHorizontal: 24,
+  },
+  mobileMenuItem: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 12,
+    paddingVertical: 14,
+    borderBottomWidth: 1,
+    borderBottomColor: 'rgba(255,255,255,0.06)',
+  },
+  mobileMenuItemActive: {
+    backgroundColor: 'rgba(255,255,255,0.08)',
+    marginHorizontal: -12,
+    paddingHorizontal: 12,
+    borderRadius: 8,
+  },
+  mobileMenuText: {
+    fontSize: 16,
+    color: COLORS.secondary,
+  },
+  mobileMenuTextActive: {
+    color: COLORS.white,
+    fontWeight: '600',
+  },
+});

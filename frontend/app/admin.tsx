@@ -59,7 +59,7 @@ interface Contact {
   created_at: string;
 }
 
-type Tab = 'bookings' | 'messages' | 'gallery';
+type Tab = 'bookings' | 'messages' | 'gallery' | 'settings' | 'services';
 
 const statusColors: Record<string, string> = {
   pending: COLORS.warning,
@@ -95,24 +95,36 @@ export default function AdminScreen() {
   const [availabilityData, setAvailabilityData] = useState<Record<number, { is_available: boolean; start_time: string; end_time: string }>>({});
   const [savingAvailability, setSavingAvailability] = useState(false);
 
+  // Services state
+  const [adminServices, setAdminServices] = useState<any[]>([]);
+  const [editingService, setEditingService] = useState<any | null>(null);
+  const [editName, setEditName] = useState('');
+  const [editDesc, setEditDesc] = useState('');
+  const [editPrice, setEditPrice] = useState('');
+  const [editDuration, setEditDuration] = useState('');
+  const [savingService, setSavingService] = useState(false);
+
   useEffect(() => {
     fetchData();
   }, []);
 
   const fetchData = async () => {
     try {
-      const [bookingsRes, contactsRes, settingsRes, availRes] = await Promise.all([
+      const [bookingsRes, contactsRes, settingsRes, availRes, servicesRes] = await Promise.all([
         fetch(`${EXPO_PUBLIC_BACKEND_URL}/api/bookings`),
         fetch(`${EXPO_PUBLIC_BACKEND_URL}/api/contacts`),
         fetch(`${EXPO_PUBLIC_BACKEND_URL}/api/settings`),
         fetch(`${EXPO_PUBLIC_BACKEND_URL}/api/availability`),
+        fetch(`${EXPO_PUBLIC_BACKEND_URL}/api/services/all`),
       ]);
       const bookingsData = await bookingsRes.json();
       const contactsData = await contactsRes.json();
       const settingsData = await settingsRes.json();
       const availData = await availRes.json();
+      const servicesData = await servicesRes.json();
       setBookings(bookingsData);
       setContacts(contactsData);
+      setAdminServices(servicesData);
       setSettingsBusinessName(settingsData.business_name || '');
       setSettingsTagline(settingsData.tagline || '');
       setSettingsAbout(settingsData.about_text || '');
@@ -313,6 +325,48 @@ export default function AdminScreen() {
     }
   };
 
+  const startEditService = (service: any) => {
+    setEditingService(service);
+    setEditName(service.name);
+    setEditDesc(service.description);
+    setEditPrice(String(service.price));
+    setEditDuration(String(service.duration_minutes));
+  };
+
+  const saveServiceEdit = async () => {
+    if (!editingService) return;
+    setSavingService(true);
+    try {
+      const response = await fetch(
+        `${EXPO_PUBLIC_BACKEND_URL}/api/services/${editingService.id}`,
+        {
+          method: 'PATCH',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            name: editName,
+            description: editDesc,
+            price: parseFloat(editPrice) || 0,
+            duration_minutes: parseInt(editDuration) || 0,
+          }),
+        }
+      );
+      if (response.ok) {
+        const updated = await response.json();
+        setAdminServices((prev) =>
+          prev.map((s) => (s.id === editingService.id ? updated : s))
+        );
+        setEditingService(null);
+        Alert.alert('Saved!', 'Service has been updated.');
+      } else {
+        throw new Error('Save failed');
+      }
+    } catch (error) {
+      Alert.alert('Error', 'Failed to save service.');
+    } finally {
+      setSavingService(false);
+    }
+  };
+
   if (loading) {
     return (
       <View style={[styles.container, styles.centered]}>
@@ -420,6 +474,25 @@ export default function AdminScreen() {
             ]}
           >
             Settings
+          </Text>
+        </TouchableOpacity>
+
+        <TouchableOpacity
+          style={[styles.tab, activeTab === 'services' && styles.tabActive]}
+          onPress={() => setActiveTab('services')}
+        >
+          <Ionicons
+            name="pricetag"
+            size={20}
+            color={activeTab === 'services' ? COLORS.primary : '#888'}
+          />
+          <Text
+            style={[
+              styles.tabText,
+              activeTab === 'services' && styles.tabTextActive,
+            ]}
+          >
+            Prices
           </Text>
         </TouchableOpacity>
       </View>
@@ -725,6 +798,125 @@ export default function AdminScreen() {
               </TouchableOpacity>
             </View>
           </KeyboardAvoidingView>
+        )}
+
+        {activeTab === 'services' && (
+          <View style={styles.listSection}>
+            <Text style={styles.settingsSectionTitle}>Manage Services & Prices</Text>
+            <Text style={styles.availHint}>Tap any service to edit its name, description, and price.</Text>
+
+            {adminServices.map((service) => (
+              <TouchableOpacity
+                key={service.id}
+                style={styles.serviceEditCard}
+                onPress={() => startEditService(service)}
+              >
+                <View style={styles.serviceEditHeader}>
+                  <Text style={styles.serviceEditName}>{service.name}</Text>
+                  <Text style={styles.serviceEditPrice}>
+                    {service.price > 0 ? `${service.price} kr` : 'Quote'}
+                  </Text>
+                </View>
+                <Text style={styles.serviceEditDesc} numberOfLines={2}>
+                  {service.description}
+                </Text>
+                <View style={styles.serviceEditFooter}>
+                  <Text style={styles.serviceEditMeta}>
+                    {service.duration_minutes > 0 ? `${service.duration_minutes} min` : 'Varies'} · {service.size}
+                  </Text>
+                  <Ionicons name="pencil" size={16} color={COLORS.primary} />
+                </View>
+              </TouchableOpacity>
+            ))}
+
+            {/* Edit Service Modal */}
+            <Modal
+              visible={editingService !== null}
+              animationType="slide"
+              transparent={true}
+              onRequestClose={() => setEditingService(null)}
+            >
+              <KeyboardAvoidingView
+                behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+                style={styles.modalOverlay}
+              >
+                <View style={styles.modalContent}>
+                  <View style={styles.modalHeader}>
+                    <Text style={styles.modalTitle}>Edit Service</Text>
+                    <TouchableOpacity onPress={() => setEditingService(null)}>
+                      <Ionicons name="close" size={24} color={COLORS.text} />
+                    </TouchableOpacity>
+                  </View>
+
+                  <ScrollView style={styles.modalBody}>
+                    <View style={styles.inputGroup}>
+                      <Text style={styles.label}>Service Name</Text>
+                      <TextInput
+                        style={styles.input}
+                        value={editName}
+                        onChangeText={setEditName}
+                        placeholder="Service name"
+                        placeholderTextColor="#999"
+                      />
+                    </View>
+
+                    <View style={styles.inputGroup}>
+                      <Text style={styles.label}>Description</Text>
+                      <TextInput
+                        style={[styles.input, styles.textArea]}
+                        value={editDesc}
+                        onChangeText={setEditDesc}
+                        placeholder="Service description"
+                        multiline
+                        numberOfLines={4}
+                        textAlignVertical="top"
+                        placeholderTextColor="#999"
+                      />
+                    </View>
+
+                    <View style={styles.inputGroup}>
+                      <Text style={styles.label}>Price (kr)</Text>
+                      <TextInput
+                        style={styles.input}
+                        value={editPrice}
+                        onChangeText={setEditPrice}
+                        placeholder="0"
+                        keyboardType="numeric"
+                        placeholderTextColor="#999"
+                      />
+                    </View>
+
+                    <View style={styles.inputGroup}>
+                      <Text style={styles.label}>Duration (minutes)</Text>
+                      <TextInput
+                        style={styles.input}
+                        value={editDuration}
+                        onChangeText={setEditDuration}
+                        placeholder="0"
+                        keyboardType="numeric"
+                        placeholderTextColor="#999"
+                      />
+                    </View>
+
+                    <TouchableOpacity
+                      style={[styles.saveButton, savingService && styles.saveButtonDisabled]}
+                      onPress={saveServiceEdit}
+                      disabled={savingService}
+                    >
+                      {savingService ? (
+                        <ActivityIndicator color={COLORS.white} />
+                      ) : (
+                        <>
+                          <Ionicons name="save" size={20} color={COLORS.white} />
+                          <Text style={styles.saveButtonText}>Save Service</Text>
+                        </>
+                      )}
+                    </TouchableOpacity>
+                  </ScrollView>
+                </View>
+              </KeyboardAvoidingView>
+            </Modal>
+          </View>
         )}
       </ScrollView>
 
@@ -1354,5 +1546,46 @@ const styles = StyleSheet.create({
     fontSize: 14,
     color: '#999',
     fontStyle: 'italic',
+  },
+  serviceEditCard: {
+    backgroundColor: COLORS.white,
+    borderRadius: 12,
+    padding: 16,
+    marginBottom: 12,
+    borderWidth: 1,
+    borderColor: '#f0f0f0',
+  },
+  serviceEditHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 8,
+  },
+  serviceEditName: {
+    fontSize: 16,
+    fontWeight: '700',
+    color: COLORS.text,
+    flex: 1,
+  },
+  serviceEditPrice: {
+    fontSize: 18,
+    fontWeight: 'bold',
+    color: COLORS.primary,
+    marginLeft: 12,
+  },
+  serviceEditDesc: {
+    fontSize: 13,
+    color: '#666',
+    lineHeight: 18,
+    marginBottom: 8,
+  },
+  serviceEditFooter: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+  },
+  serviceEditMeta: {
+    fontSize: 12,
+    color: '#999',
   },
 });

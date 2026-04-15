@@ -63,6 +63,12 @@ class ServiceCreate(BaseModel):
     duration_minutes: int
     image_url: Optional[str] = None
 
+class ServiceUpdate(BaseModel):
+    name: Optional[str] = None
+    description: Optional[str] = None
+    price: Optional[float] = None
+    duration_minutes: Optional[int] = None
+
 class GalleryItem(BaseModel):
     id: str = Field(default_factory=lambda: str(uuid.uuid4()))
     title: str
@@ -191,6 +197,20 @@ async def delete_service(service_id: str):
     if result.deleted_count == 0:
         raise HTTPException(status_code=404, detail="Service not found")
     return {"message": "Service deleted"}
+
+@api_router.patch("/services/{service_id}", response_model=Service)
+async def update_service(service_id: str, update: ServiceUpdate):
+    update_dict = {k: v for k, v in update.dict().items() if v is not None}
+    if not update_dict:
+        raise HTTPException(status_code=400, detail="No fields to update")
+    result = await db.services.find_one_and_update(
+        {"id": service_id},
+        {"$set": update_dict},
+        return_document=True
+    )
+    if not result:
+        raise HTTPException(status_code=404, detail="Service not found")
+    return Service(**result)
 
 # Gallery Routes
 @api_router.get("/gallery", response_model=List[GalleryItem])
