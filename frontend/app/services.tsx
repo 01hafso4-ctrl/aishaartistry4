@@ -206,7 +206,7 @@ export default function ServicesScreen() {
           </View>
           <View style={styles.noteItem}>
             <Ionicons name="checkmark-circle" size={18} color={COLORS.accent} />
-            <Text style={styles.noteText}>Mobile service available at extra charge</Text>
+            <Text style={styles.noteText}>Mobile service available if you pay the travel expenses</Text>
           </View>
         </View>
       </ScrollView>

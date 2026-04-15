@@ -156,7 +156,7 @@ export default function HomeScreen() {
             <ServiceItem
               icon="car-outline"
               title="Mobile Service"
-              description="We come to you"
+              description="We come to you (travel expenses apply)"
             />
           </View>
           <TouchableOpacity
@@ -175,7 +175,7 @@ export default function HomeScreen() {
             {settings?.phone && (
               <View style={styles.contactItem}>
                 <Ionicons name="call-outline" size={20} color={COLORS.primary} />
-                <Text style={styles.contactText}>{settings.phone}</Text>
+                <Text style={styles.contactText}>+47 {settings.phone}</Text>
               </View>
             )}
             {settings?.email && (
@@ -196,6 +196,10 @@ export default function HomeScreen() {
                 <Text style={styles.contactText}>{settings.studio_address}</Text>
               </View>
             )}
+            <View style={styles.contactItem}>
+              <Ionicons name="flag-outline" size={20} color={COLORS.primary} />
+              <Text style={styles.contactText}>Available in Norway only</Text>
+            </View>
           </View>
         </View>
 

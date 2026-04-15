@@ -430,7 +430,7 @@ export default function BookScreen() {
                   placeholderTextColor="#999"
                 />
                 <Text style={styles.noteText}>
-                  Note: Mobile service may have additional travel charges
+                  Note: Mobile service available if you pay the travel expenses
                 </Text>
               </View>
             )}

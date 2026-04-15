@@ -120,7 +120,7 @@ export default function ContactScreen() {
 
   const openPhone = () => {
     if (settings?.phone) {
-      Linking.openURL(`tel:${settings.phone.replace(/[^0-9]/g, '')}`);
+      Linking.openURL(`tel:+47${settings.phone.replace(/[^0-9]/g, '')}`);
     }
   };
 
@@ -175,8 +175,8 @@ export default function ContactScreen() {
                   <Ionicons name="call" size={24} color={COLORS.primary} />
                 </View>
                 <View style={styles.contactCardContent}>
-                  <Text style={styles.contactCardLabel}>Phone</Text>
-                  <Text style={styles.contactCardValue}>{settings.phone}</Text>
+                  <Text style={styles.contactCardLabel}>Phone (Norway)</Text>
+                  <Text style={styles.contactCardValue}>+47 {settings.phone}</Text>
                 </View>
                 <Ionicons name="chevron-forward" size={20} color="#ccc" />
               </TouchableOpacity>
@@ -203,8 +203,9 @@ export default function ContactScreen() {
                 <View style={styles.contactCardContent}>
                   <Text style={styles.contactCardLabel}>Instagram</Text>
                   <Text style={styles.contactCardValue}>{settings.instagram}</Text>
+                  <Text style={styles.contactCardLink}>Tap to visit our Instagram</Text>
                 </View>
-                <Ionicons name="chevron-forward" size={20} color="#ccc" />
+                <Ionicons name="open-outline" size={20} color={COLORS.primary} />
               </TouchableOpacity>
             )}
 
@@ -306,7 +307,7 @@ export default function ContactScreen() {
             />
             <FAQItem
               question="Do you travel for appointments?"
-              answer="Yes! We offer mobile services and can come to your location. Additional travel fees may apply based on distance."
+              answer="Yes! We offer mobile services and can come to your location. Travel expenses must be covered by the customer."
             />
           </View>
         </ScrollView>
@@ -397,6 +398,11 @@ const styles = StyleSheet.create({
     fontSize: 15,
     fontWeight: '500',
     color: COLORS.text,
+  },
+  contactCardLink: {
+    fontSize: 12,
+    color: COLORS.primary,
+    marginTop: 2,
   },
   formSection: {
     backgroundColor: COLORS.white,

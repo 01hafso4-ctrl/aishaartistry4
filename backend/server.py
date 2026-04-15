@@ -388,9 +388,9 @@ async def seed_data():
     settings = BusinessSettings(
         business_name="Henna Artistry",
         tagline="Beautiful Henna Art for Every Occasion",
-        phone="(555) 123-4567",
+        phone="46655648",
         email="hello@hennaartistry.com",
-        instagram="@hennaartistry",
+        instagram="@aishaartistry4",
         studio_address="123 Beauty Lane, Suite 100",
         about_text="Welcome to Henna Artistry! I am a passionate henna artist with over 5 years of experience creating beautiful, intricate designs for weddings, parties, and special occasions. I offer both studio appointments and mobile services to make your henna experience convenient and memorable."
     )
