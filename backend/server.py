@@ -437,7 +437,7 @@ async def seed_data():
     
     # Seed default settings
     settings = BusinessSettings(
-        business_name="Aishartistry",
+        business_name="Aishaartistry",
         tagline="Beautiful Henna Art for Every Occasion",
         phone="46655648",
         email="hello@hennaartistry.com",

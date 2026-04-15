@@ -40,7 +40,7 @@ function WebNavBar() {
       <View style={styles.navInner}>
         <TouchableOpacity onPress={() => router.push('/')} style={styles.logoContainer}>
           <Ionicons name="leaf" size={24} color={COLORS.accent} />
-          <Text style={styles.logoText}>Aishartistry</Text>
+          <Text style={styles.logoText}>Aishaartistry</Text>
         </TouchableOpacity>
 
         {isWide ? (
