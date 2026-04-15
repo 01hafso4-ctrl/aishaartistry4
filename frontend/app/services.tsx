@@ -86,7 +86,7 @@ export default function ServicesScreen() {
 
   const formatPrice = (price: number) => {
     if (price === 0) return 'Get Quote';
-    return `$${price.toFixed(0)}`;
+    return `${price.toFixed(0)} kr`;
   };
 
   if (loading) {
@@ -198,11 +198,15 @@ export default function ServicesScreen() {
           <Text style={styles.noteTitle}>Booking Information</Text>
           <View style={styles.noteItem}>
             <Ionicons name="checkmark-circle" size={18} color={COLORS.accent} />
-            <Text style={styles.noteText}>All prices are starting prices</Text>
+            <Text style={styles.noteText}>All prices are per hand/foot unless stated</Text>
           </View>
           <View style={styles.noteItem}>
             <Ionicons name="checkmark-circle" size={18} color={COLORS.accent} />
-            <Text style={styles.noteText}>Deposits may be required for bridal packages</Text>
+            <Text style={styles.noteText}>Bridal package includes hands, arms, legs, chest and back</Text>
+          </View>
+          <View style={styles.noteItem}>
+            <Ionicons name="checkmark-circle" size={18} color={COLORS.accent} />
+            <Text style={styles.noteText}>Custom designs from +100–150 kr</Text>
           </View>
           <View style={styles.noteItem}>
             <Ionicons name="checkmark-circle" size={18} color={COLORS.accent} />

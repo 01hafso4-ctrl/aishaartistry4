@@ -91,20 +91,26 @@ export default function AdminScreen() {
   const [settingsAddress, setSettingsAddress] = useState('');
   const [savingSettings, setSavingSettings] = useState(false);
 
+  // Availability state
+  const [availabilityData, setAvailabilityData] = useState<Record<number, { is_available: boolean; start_time: string; end_time: string }>>({});
+  const [savingAvailability, setSavingAvailability] = useState(false);
+
   useEffect(() => {
     fetchData();
   }, []);
 
   const fetchData = async () => {
     try {
-      const [bookingsRes, contactsRes, settingsRes] = await Promise.all([
+      const [bookingsRes, contactsRes, settingsRes, availRes] = await Promise.all([
         fetch(`${EXPO_PUBLIC_BACKEND_URL}/api/bookings`),
         fetch(`${EXPO_PUBLIC_BACKEND_URL}/api/contacts`),
         fetch(`${EXPO_PUBLIC_BACKEND_URL}/api/settings`),
+        fetch(`${EXPO_PUBLIC_BACKEND_URL}/api/availability`),
       ]);
       const bookingsData = await bookingsRes.json();
       const contactsData = await contactsRes.json();
       const settingsData = await settingsRes.json();
+      const availData = await availRes.json();
       setBookings(bookingsData);
       setContacts(contactsData);
       setSettingsBusinessName(settingsData.business_name || '');
@@ -114,6 +120,18 @@ export default function AdminScreen() {
       setSettingsEmail(settingsData.email || '');
       setSettingsInstagram(settingsData.instagram || '');
       setSettingsAddress(settingsData.studio_address || '');
+      // Parse availability
+      const availMap: Record<number, { is_available: boolean; start_time: string; end_time: string }> = {};
+      for (const a of availData) {
+        availMap[a.day_of_week] = { is_available: a.is_available, start_time: a.start_time, end_time: a.end_time };
+      }
+      // Fill defaults for missing days
+      for (let i = 0; i < 7; i++) {
+        if (!availMap[i]) {
+          availMap[i] = { is_available: i !== 0, start_time: '10:00', end_time: '18:00' };
+        }
+      }
+      setAvailabilityData(availMap);
     } catch (error) {
       console.error('Error fetching data:', error);
     } finally {
@@ -250,6 +268,48 @@ export default function AdminScreen() {
       Alert.alert('Error', 'Failed to save settings. Please try again.');
     } finally {
       setSavingSettings(false);
+    }
+  };
+
+  const dayNames = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
+
+  const toggleDayAvailability = (day: number) => {
+    setAvailabilityData((prev) => ({
+      ...prev,
+      [day]: { ...prev[day], is_available: !prev[day].is_available },
+    }));
+  };
+
+  const updateDayTime = (day: number, field: 'start_time' | 'end_time', value: string) => {
+    setAvailabilityData((prev) => ({
+      ...prev,
+      [day]: { ...prev[day], [field]: value },
+    }));
+  };
+
+  const saveAvailability = async () => {
+    setSavingAvailability(true);
+    try {
+      const bulk = Object.entries(availabilityData).map(([day, data]) => ({
+        day_of_week: parseInt(day),
+        start_time: data.start_time,
+        end_time: data.end_time,
+        is_available: data.is_available,
+      }));
+      const response = await fetch(`${EXPO_PUBLIC_BACKEND_URL}/api/availability/bulk`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(bulk),
+      });
+      if (response.ok) {
+        Alert.alert('Saved!', 'Availability has been updated.');
+      } else {
+        throw new Error('Save failed');
+      }
+    } catch (error) {
+      Alert.alert('Error', 'Failed to save availability.');
+    } finally {
+      setSavingAvailability(false);
     }
   };
 
@@ -602,7 +662,64 @@ export default function AdminScreen() {
                 ) : (
                   <>
                     <Ionicons name="save" size={20} color={COLORS.white} />
-                    <Text style={styles.saveButtonText}>Save Changes</Text>
+                    <Text style={styles.saveButtonText}>Save Business Info</Text>
+                  </>
+                )}
+              </TouchableOpacity>
+            </View>
+
+            {/* Availability Management */}
+            <View style={[styles.settingsSection, { marginTop: 16 }]}>
+              <Text style={styles.settingsSectionTitle}>Manage Availability</Text>
+              <Text style={styles.availHint}>Toggle days on/off and set opening hours. Customers will only be able to book on available days.</Text>
+
+              {[1, 2, 3, 4, 5, 6, 0].map((day) => (
+                <View key={day} style={styles.availRow}>
+                  <TouchableOpacity
+                    style={styles.availToggle}
+                    onPress={() => toggleDayAvailability(day)}
+                  >
+                    <View style={[styles.availDot, availabilityData[day]?.is_available ? styles.availDotOn : styles.availDotOff]} />
+                    <Text style={[styles.availDayName, !availabilityData[day]?.is_available && styles.availDayNameOff]}>
+                      {dayNames[day]}
+                    </Text>
+                  </TouchableOpacity>
+                  {availabilityData[day]?.is_available ? (
+                    <View style={styles.availTimes}>
+                      <TextInput
+                        style={styles.availTimeInput}
+                        value={availabilityData[day]?.start_time}
+                        onChangeText={(v) => updateDayTime(day, 'start_time', v)}
+                        placeholder="10:00"
+                        placeholderTextColor="#999"
+                      />
+                      <Text style={styles.availDash}>–</Text>
+                      <TextInput
+                        style={styles.availTimeInput}
+                        value={availabilityData[day]?.end_time}
+                        onChangeText={(v) => updateDayTime(day, 'end_time', v)}
+                        placeholder="18:00"
+                        placeholderTextColor="#999"
+                      />
+                    </View>
+                  ) : (
+                    <Text style={styles.availClosedText}>Closed</Text>
+                  )}
+                </View>
+              ))}
+
+              <TouchableOpacity
+                testID="save-availability-btn"
+                style={[styles.saveButton, savingAvailability && styles.saveButtonDisabled]}
+                onPress={saveAvailability}
+                disabled={savingAvailability}
+              >
+                {savingAvailability ? (
+                  <ActivityIndicator color={COLORS.white} />
+                ) : (
+                  <>
+                    <Ionicons name="calendar" size={20} color={COLORS.white} />
+                    <Text style={styles.saveButtonText}>Save Availability</Text>
                   </>
                 )}
               </TouchableOpacity>
@@ -1172,5 +1289,70 @@ const styles = StyleSheet.create({
     fontSize: 18,
     fontWeight: '600',
     color: COLORS.white,
+  },
+  availHint: {
+    fontSize: 13,
+    color: '#888',
+    marginBottom: 16,
+    lineHeight: 18,
+  },
+  availRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    paddingVertical: 12,
+    borderBottomWidth: 1,
+    borderBottomColor: '#f0f0f0',
+  },
+  availToggle: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 10,
+    flex: 1,
+  },
+  availDot: {
+    width: 12,
+    height: 12,
+    borderRadius: 6,
+  },
+  availDotOn: {
+    backgroundColor: COLORS.success,
+  },
+  availDotOff: {
+    backgroundColor: '#ccc',
+  },
+  availDayName: {
+    fontSize: 15,
+    fontWeight: '600',
+    color: COLORS.text,
+  },
+  availDayNameOff: {
+    color: '#999',
+  },
+  availTimes: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+  },
+  availTimeInput: {
+    backgroundColor: COLORS.lightBg,
+    borderRadius: 8,
+    paddingHorizontal: 10,
+    paddingVertical: 8,
+    fontSize: 14,
+    color: COLORS.text,
+    width: 65,
+    textAlign: 'center',
+    borderWidth: 1,
+    borderColor: '#e0e0e0',
+  },
+  availDash: {
+    fontSize: 16,
+    color: '#888',
+  },
+  availClosedText: {
+    fontSize: 14,
+    color: '#999',
+    fontStyle: 'italic',
   },
 });
