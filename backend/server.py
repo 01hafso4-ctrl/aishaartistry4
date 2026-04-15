@@ -171,19 +171,46 @@ class BusinessSettingsUpdate(BaseModel):
 class AdminLogin(BaseModel):
     password: str
 
+class AdminPasswordChange(BaseModel):
+    current_password: str
+    new_password: str
+
 # Routes
 
 @api_router.get("/")
 async def root():
     return {"message": "Henna Business API"}
 
+# Helper to get admin password from DB (falls back to env)
+async def get_admin_password():
+    record = await db.admin_auth.find_one({"id": "admin_password"})
+    if record:
+        return record["password"]
+    # Seed from env on first use
+    env_pw = os.environ.get('ADMIN_PASSWORD')
+    await db.admin_auth.insert_one({"id": "admin_password", "password": env_pw})
+    return env_pw
+
 # Admin Login
 @api_router.post("/admin/login")
 async def admin_login(login: AdminLogin):
-    admin_password = os.environ.get('ADMIN_PASSWORD')
+    admin_password = await get_admin_password()
     if login.password == admin_password:
         return {"success": True}
     raise HTTPException(status_code=401, detail="Invalid password")
+
+# Admin Change Password
+@api_router.patch("/admin/password")
+async def change_admin_password(data: AdminPasswordChange):
+    current_pw = await get_admin_password()
+    if data.current_password != current_pw:
+        raise HTTPException(status_code=401, detail="Current password is incorrect")
+    await db.admin_auth.update_one(
+        {"id": "admin_password"},
+        {"$set": {"password": data.new_password}},
+        upsert=True
+    )
+    return {"success": True, "message": "Password updated successfully"}
 
 # Services Routes
 @api_router.get("/services", response_model=List[Service])

@@ -110,6 +110,14 @@ export default function AdminScreen() {
   const [loginError, setLoginError] = useState('');
   const [loginLoading, setLoginLoading] = useState(false);
 
+  // Password change state
+  const [currentPw, setCurrentPw] = useState('');
+  const [newPw, setNewPw] = useState('');
+  const [confirmPw, setConfirmPw] = useState('');
+  const [pwError, setPwError] = useState('');
+  const [pwSuccess, setPwSuccess] = useState('');
+  const [savingPw, setSavingPw] = useState(false);
+
   useEffect(() => {
     if (isAuthenticated) {
       fetchData();
@@ -360,6 +368,43 @@ export default function AdminScreen() {
       setLoginError('Connection error. Please try again.');
     } finally {
       setLoginLoading(false);
+    }
+  };
+
+  const handleChangePassword = async () => {
+    setPwError('');
+    setPwSuccess('');
+    if (!currentPw || !newPw) {
+      setPwError('Please fill in all fields');
+      return;
+    }
+    if (newPw.length < 4) {
+      setPwError('New password must be at least 4 characters');
+      return;
+    }
+    if (newPw !== confirmPw) {
+      setPwError('New passwords do not match');
+      return;
+    }
+    setSavingPw(true);
+    try {
+      const response = await fetch(`${EXPO_PUBLIC_BACKEND_URL}/api/admin/password`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ current_password: currentPw, new_password: newPw }),
+      });
+      if (response.ok) {
+        setPwSuccess('Password changed successfully!');
+        setCurrentPw('');
+        setNewPw('');
+        setConfirmPw('');
+      } else {
+        setPwError('Current password is incorrect');
+      }
+    } catch (error) {
+      setPwError('Connection error. Please try again.');
+    } finally {
+      setSavingPw(false);
     }
   };
 
@@ -881,6 +926,81 @@ export default function AdminScreen() {
                   <>
                     <Ionicons name="calendar" size={20} color={COLORS.white} />
                     <Text style={styles.saveButtonText}>Save Availability</Text>
+                  </>
+                )}
+              </TouchableOpacity>
+            </View>
+
+            {/* Change Password */}
+            <View style={[styles.settingsSection, { marginTop: 16 }]}>
+              <Text style={styles.settingsSectionTitle}>Change Password</Text>
+              <Text style={styles.availHint}>Update your admin login password.</Text>
+
+              {pwSuccess ? (
+                <View style={[styles.loginErrorBox, { backgroundColor: '#F0FFF0', marginBottom: 16 }]}>
+                  <Ionicons name="checkmark-circle" size={16} color={COLORS.success} />
+                  <Text style={[styles.loginErrorText, { color: COLORS.success }]}>{pwSuccess}</Text>
+                </View>
+              ) : null}
+
+              {pwError ? (
+                <View style={[styles.loginErrorBox, { marginBottom: 16 }]}>
+                  <Ionicons name="alert-circle" size={16} color={COLORS.error} />
+                  <Text style={styles.loginErrorText}>{pwError}</Text>
+                </View>
+              ) : null}
+
+              <View style={styles.inputGroup}>
+                <Text style={styles.label}>Current Password</Text>
+                <TextInput
+                  testID="change-pw-current"
+                  style={styles.input}
+                  placeholder="Enter current password"
+                  value={currentPw}
+                  onChangeText={setCurrentPw}
+                  secureTextEntry
+                  placeholderTextColor="#999"
+                />
+              </View>
+
+              <View style={styles.inputGroup}>
+                <Text style={styles.label}>New Password</Text>
+                <TextInput
+                  testID="change-pw-new"
+                  style={styles.input}
+                  placeholder="Enter new password"
+                  value={newPw}
+                  onChangeText={setNewPw}
+                  secureTextEntry
+                  placeholderTextColor="#999"
+                />
+              </View>
+
+              <View style={styles.inputGroup}>
+                <Text style={styles.label}>Confirm New Password</Text>
+                <TextInput
+                  testID="change-pw-confirm"
+                  style={styles.input}
+                  placeholder="Re-enter new password"
+                  value={confirmPw}
+                  onChangeText={setConfirmPw}
+                  secureTextEntry
+                  placeholderTextColor="#999"
+                />
+              </View>
+
+              <TouchableOpacity
+                testID="change-pw-btn"
+                style={[styles.saveButton, savingPw && styles.saveButtonDisabled]}
+                onPress={handleChangePassword}
+                disabled={savingPw}
+              >
+                {savingPw ? (
+                  <ActivityIndicator color={COLORS.white} />
+                ) : (
+                  <>
+                    <Ionicons name="key" size={20} color={COLORS.white} />
+                    <Text style={styles.saveButtonText}>Update Password</Text>
                   </>
                 )}
               </TouchableOpacity>

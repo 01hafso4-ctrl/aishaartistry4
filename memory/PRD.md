@@ -69,6 +69,7 @@ app/
 - [x] Admin password protection (password: henna2024)
 - [x] Mobile responsive design with hamburger menu
 - [x] Admin notification banner + highlighted stat cards for pending items
+- [x] Admin password change from within dashboard (Settings → Change Password)
 
 ## Admin Credentials
 - Password: henna2024 (configurable via ADMIN_PASSWORD in backend/.env)
