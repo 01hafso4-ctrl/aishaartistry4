@@ -68,6 +68,7 @@ app/
 - [x] Baby pink color theme (#D4688A primary)
 - [x] Admin password protection (password: henna2024)
 - [x] Mobile responsive design with hamburger menu
+- [x] Admin notification banner + highlighted stat cards for pending items
 
 ## Admin Credentials
 - Password: henna2024 (configurable via ADMIN_PASSWORD in backend/.env)

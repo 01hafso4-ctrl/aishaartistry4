@@ -451,16 +451,30 @@ export default function AdminScreen() {
 
   return (
     <SafeAreaView style={styles.container} edges={['bottom']}>
+      {/* Notification Banner */}
+      {(pendingBookings > 0 || unreadMessages > 0) && (
+        <View style={styles.notifBanner}>
+          <Ionicons name="notifications" size={20} color={COLORS.white} />
+          <Text style={styles.notifBannerText}>
+            {pendingBookings > 0 && unreadMessages > 0
+              ? `${pendingBookings} new booking${pendingBookings > 1 ? 's' : ''} & ${unreadMessages} unread message${unreadMessages > 1 ? 's' : ''}`
+              : pendingBookings > 0
+              ? `${pendingBookings} new booking request${pendingBookings > 1 ? 's' : ''} waiting for your response!`
+              : `${unreadMessages} unread message${unreadMessages > 1 ? 's' : ''} from customers`}
+          </Text>
+        </View>
+      )}
+
       {/* Stats Cards */}
       <View style={styles.statsRow}>
-        <View style={styles.statCard}>
-          <Text style={styles.statNumber}>{pendingBookings}</Text>
+        <TouchableOpacity style={[styles.statCard, pendingBookings > 0 && styles.statCardAlert]} onPress={() => setActiveTab('bookings')}>
+          <Text style={[styles.statNumber, pendingBookings > 0 && styles.statNumberAlert]}>{pendingBookings}</Text>
           <Text style={styles.statLabel}>Pending Bookings</Text>
-        </View>
-        <View style={styles.statCard}>
-          <Text style={styles.statNumber}>{unreadMessages}</Text>
+        </TouchableOpacity>
+        <TouchableOpacity style={[styles.statCard, unreadMessages > 0 && styles.statCardAlert]} onPress={() => setActiveTab('messages')}>
+          <Text style={[styles.statNumber, unreadMessages > 0 && styles.statNumberAlert]}>{unreadMessages}</Text>
           <Text style={styles.statLabel}>Unread Messages</Text>
-        </View>
+        </TouchableOpacity>
       </View>
 
       {/* Tabs */}
@@ -1212,6 +1226,22 @@ const styles = StyleSheet.create({
     padding: 16,
     gap: 12,
   },
+  notifBanner: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: COLORS.primary,
+    marginHorizontal: 16,
+    marginTop: 12,
+    padding: 14,
+    borderRadius: 12,
+    gap: 10,
+  },
+  notifBannerText: {
+    color: COLORS.white,
+    fontSize: 14,
+    fontWeight: '600',
+    flex: 1,
+  },
   statCard: {
     flex: 1,
     backgroundColor: COLORS.white,
@@ -1219,10 +1249,18 @@ const styles = StyleSheet.create({
     padding: 16,
     alignItems: 'center',
   },
+  statCardAlert: {
+    backgroundColor: COLORS.lightBg,
+    borderWidth: 1,
+    borderColor: COLORS.primary,
+  },
   statNumber: {
     fontSize: 28,
     fontWeight: 'bold',
     color: COLORS.primary,
+  },
+  statNumberAlert: {
+    color: COLORS.error,
   },
   statLabel: {
     fontSize: 12,
