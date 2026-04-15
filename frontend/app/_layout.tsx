@@ -28,7 +28,6 @@ function WebNavBar() {
     { label: 'Gallery', path: '/gallery', icon: 'images-outline' },
     { label: 'Book Now', path: '/book', icon: 'calendar-outline' },
     { label: 'Contact', path: '/contact', icon: 'mail-outline' },
-    { label: 'Admin', path: '/admin', icon: 'settings-outline' },
   ];
 
   const isActive = (path: string) => {
@@ -41,7 +40,7 @@ function WebNavBar() {
       <View style={styles.navInner}>
         <TouchableOpacity onPress={() => router.push('/')} style={styles.logoContainer}>
           <Ionicons name="leaf" size={24} color={COLORS.accent} />
-          <Text style={styles.logoText}>Henna Artistry</Text>
+          <Text style={styles.logoText}>Aishaartistry</Text>
         </TouchableOpacity>
 
         {isWide ? (
