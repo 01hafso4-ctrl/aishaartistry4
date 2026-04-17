@@ -10,6 +10,7 @@ import {
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { router } from 'expo-router';
+import { supabase } from '../lib/supabase';
 
 const COLORS = {
   primary: '#D4688A',
@@ -25,81 +26,38 @@ interface Service {
   id: string;
   name: string;
   description: string;
-  size: string;
   price: number;
   duration_minutes: number;
+  created_at?: string;
 }
-
-const LOCAL_SERVICES: Service[] = [
-  {
-    id: '1',
-    name: 'Small Henna',
-    description: 'Simple and elegant designs for fingers or small areas.',
-    size: 'small',
-    price: 300,
-    duration_minutes: 30,
-  },
-  {
-    id: '2',
-    name: 'Medium Henna',
-    description: 'Beautiful designs covering the hand or foot.',
-    size: 'medium',
-    price: 500,
-    duration_minutes: 45,
-  },
-  {
-    id: '3',
-    name: 'Large Henna',
-    description: 'Detailed designs covering hand and arm or foot and leg.',
-    size: 'large',
-    price: 800,
-    duration_minutes: 60,
-  },
-  {
-    id: '4',
-    name: 'Bridal Henna',
-    description: 'Full bridal package with intricate designs.',
-    size: 'bridal',
-    price: 1500,
-    duration_minutes: 120,
-  },
-  {
-    id: '5',
-    name: 'Custom Design',
-    description: 'Custom henna tailored to your preference.',
-    size: 'custom',
-    price: 0,
-    duration_minutes: 0,
-  },
-];
-
-const sizeLabels: Record<string, string> = {
-  small: 'Small',
-  medium: 'Medium',
-  large: 'Large',
-  bridal: 'Bridal',
-  custom: 'Custom',
-};
-
-const sizeIcons: Record<string, string> = {
-  small: 'finger-print-outline',
-  medium: 'hand-left-outline',
-  large: 'hand-right-outline',
-  bridal: 'heart-outline',
-  custom: 'color-palette-outline',
-};
 
 export default function ServicesScreen() {
   const [services, setServices] = useState<Service[]>([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    setServices(LOCAL_SERVICES);
-    setLoading(false);
+    fetchServices();
   }, []);
 
+  const fetchServices = async () => {
+    try {
+      const { data, error } = await supabase
+        .from('services')
+        .select('*')
+        .order('created_at', { ascending: true });
+
+      if (error) throw error;
+
+      setServices(data || []);
+    } catch (error) {
+      console.error('Error fetching services:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
   const formatDuration = (minutes: number) => {
-    if (minutes === 0) return 'Varies';
+    if (!minutes || minutes === 0) return 'Varies';
     if (minutes < 60) return `${minutes} min`;
     const hours = Math.floor(minutes / 60);
     const mins = minutes % 60;
@@ -107,7 +65,7 @@ export default function ServicesScreen() {
   };
 
   const formatPrice = (price: number) => {
-    if (price === 0) return 'Get Quote';
+    if (!price || price === 0) return 'Get Quote';
     return `${price.toFixed(0)} kr`;
   };
 
@@ -134,32 +92,23 @@ export default function ServicesScreen() {
             <TouchableOpacity
               key={service.id}
               style={styles.serviceCard}
-              onPress={() => router.push('/book')}
+              onPress={() =>
+                router.push({
+                  pathname: '/book',
+                  params: {
+                    serviceId: service.id,
+                    serviceName: service.name,
+                  },
+                })
+              }
             >
               <View style={styles.serviceHeader}>
                 <View style={styles.serviceIcon}>
                   <Ionicons
-                    name={(sizeIcons[service.size] || 'sparkles-outline') as any}
+                    name="sparkles-outline"
                     size={28}
                     color={COLORS.primary}
                   />
-                </View>
-                <View style={styles.sizeTag}>
-                  <Text style={styles.sizeTagText}>
-                    {sizeLabels[service.size] || service.size}
-                  </Text>
-                </View>
-              </View>
-
-              <Text style={styles.serviceName}>{service.name}</Text>
-              <Text style={styles.serviceDescription}>{service.description}</Text>
-
-              <View style={styles.serviceFooter}>
-                <View style={styles.durationContainer}>
-                  <Ionicons name="time-outline" size={16} color="#888" />
-                  <Text style={styles.durationText}>
-                    {formatDuration(service.duration_minutes)}
-                  </Text>
                 </View>
                 <View style={styles.priceContainer}>
                   <Text style={styles.priceText}>
@@ -168,10 +117,22 @@ export default function ServicesScreen() {
                 </View>
               </View>
 
+              <Text style={styles.serviceName}>{service.name}</Text>
+              <Text style={styles.serviceDescription}>
+                {service.description}
+              </Text>
+
+              <View style={styles.serviceFooter}>
+                <View style={styles.durationContainer}>
+                  <Ionicons name="time-outline" size={16} color="#888" />
+                  <Text style={styles.durationText}>
+                    {formatDuration(service.duration_minutes)}
+                  </Text>
+                </View>
+              </View>
+
               <View style={styles.bookButton}>
-                <Text style={styles.bookButtonText}>
-                  {service.size === 'custom' ? 'Request Quote' : 'Book Now'}
-                </Text>
+                <Text style={styles.bookButtonText}>Book Now</Text>
                 <Ionicons
                   name="arrow-forward"
                   size={16}
@@ -297,17 +258,6 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
   },
-  sizeTag: {
-    backgroundColor: COLORS.secondary,
-    paddingHorizontal: 12,
-    paddingVertical: 6,
-    borderRadius: 20,
-  },
-  sizeTagText: {
-    fontSize: 12,
-    fontWeight: '600',
-    color: COLORS.text,
-  },
   serviceName: {
     fontSize: 20,
     fontWeight: 'bold',
@@ -407,8 +357,3 @@ const styles = StyleSheet.create({
     color: '#666',
   },
 });
-
-    
-    
- 
-              
