@@ -8,6 +8,7 @@ import {
   ImageBackground,
   Dimensions,
   ActivityIndicator,
+  Linking,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
@@ -81,12 +82,12 @@ export default function HomeScreen() {
             </Text>
             <TouchableOpacity
               style={styles.ctaButton}
-              onPress={() => {
-  window.open(
-    "https://www.fresha.com/book-now/aishaartistry4-fb058pbl/all-offer?share=true&pId=2853591",
-    "_blank"
+              
+onPress={() => {
+  Linking.openURL(
+    "https://www.fresha.com/book-now/aishaartistry4-fb058pbl/all-offer?share=true&pId=2853591"
   );
-}}
+}
             >
               <Text style={styles.ctaButtonText}>Book Now</Text>
               <Ionicons name="arrow-forward" size={20} color={COLORS.white} />
