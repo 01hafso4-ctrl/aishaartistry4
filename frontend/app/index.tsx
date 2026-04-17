@@ -81,7 +81,12 @@ export default function HomeScreen() {
             </Text>
             <TouchableOpacity
               style={styles.ctaButton}
-              onPress={() => router.push('/book')}
+              onPress={() => {
+  window.open(
+    "https://www.fresha.com/book-now/aishaartistry4-fb058pbl/all-offer?share=true&pId=2853591",
+    "_blank"
+  );
+}}
             >
               <Text style={styles.ctaButtonText}>Book Now</Text>
               <Ionicons name="arrow-forward" size={20} color={COLORS.white} />
