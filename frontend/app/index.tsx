@@ -81,17 +81,16 @@ export default function HomeScreen() {
               {settings?.tagline || 'Beautiful Henna Art for Every Occasion'}
             </Text>
             <TouchableOpacity
-              style={styles.ctaButton}
-              
-onPress={() => {
-  Linking.openURL(
-    "https://www.fresha.com/book-now/aishaartistry4-fb058pbl/all-offer?share=true&pId=2853591"
-  );
-}
-            >
-              <Text style={styles.ctaButtonText}>Book Now</Text>
-              <Ionicons name="arrow-forward" size={20} color={COLORS.white} />
-            </TouchableOpacity>
+  style={styles.ctaButton}
+  onPress={() => {
+    Linking.openURL(
+      "https://www.fresha.com/book-now/aishaartistry4-fb058pbl/all-offer?share=true&pId=2853591"
+    );
+  }}
+>
+  <Text style={styles.ctaButtonText}>Book Now</Text>
+  <Ionicons name="arrow-forward" size={20} color={COLORS.white} />
+</TouchableOpacity>
           </View>
         </View>
 
