@@ -6,13 +6,10 @@ import {
   ScrollView,
   TouchableOpacity,
   ActivityIndicator,
-  RefreshControl,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { router } from 'expo-router';
-
-const EXPO_PUBLIC_BACKEND_URL = process.env.EXPO_PUBLIC_BACKEND_URL;
 
 const COLORS = {
   primary: '#D4688A',
@@ -33,6 +30,49 @@ interface Service {
   duration_minutes: number;
 }
 
+const LOCAL_SERVICES: Service[] = [
+  {
+    id: '1',
+    name: 'Small Henna',
+    description: 'Simple and elegant designs for fingers or small areas.',
+    size: 'small',
+    price: 300,
+    duration_minutes: 30,
+  },
+  {
+    id: '2',
+    name: 'Medium Henna',
+    description: 'Beautiful designs covering the hand or foot.',
+    size: 'medium',
+    price: 500,
+    duration_minutes: 45,
+  },
+  {
+    id: '3',
+    name: 'Large Henna',
+    description: 'Detailed designs covering hand and arm or foot and leg.',
+    size: 'large',
+    price: 800,
+    duration_minutes: 60,
+  },
+  {
+    id: '4',
+    name: 'Bridal Henna',
+    description: 'Full bridal package with intricate designs.',
+    size: 'bridal',
+    price: 1500,
+    duration_minutes: 120,
+  },
+  {
+    id: '5',
+    name: 'Custom Design',
+    description: 'Custom henna tailored to your preference.',
+    size: 'custom',
+    price: 0,
+    duration_minutes: 0,
+  },
+];
+
 const sizeLabels: Record<string, string> = {
   small: 'Small',
   medium: 'Medium',
@@ -52,29 +92,11 @@ const sizeIcons: Record<string, string> = {
 export default function ServicesScreen() {
   const [services, setServices] = useState<Service[]>([]);
   const [loading, setLoading] = useState(true);
-  const [refreshing, setRefreshing] = useState(false);
 
   useEffect(() => {
-    fetchServices();
+    setServices(LOCAL_SERVICES);
+    setLoading(false);
   }, []);
-
-  const fetchServices = async () => {
-    try {
-      const response = await fetch(`${EXPO_PUBLIC_BACKEND_URL}/api/services`);
-      const data = await response.json();
-      setServices(data);
-    } catch (error) {
-      console.error('Error fetching services:', error);
-    } finally {
-      setLoading(false);
-      setRefreshing(false);
-    }
-  };
-
-  const onRefresh = () => {
-    setRefreshing(true);
-    fetchServices();
-  };
 
   const formatDuration = (minutes: number) => {
     if (minutes === 0) return 'Varies';
@@ -99,13 +121,7 @@ export default function ServicesScreen() {
 
   return (
     <SafeAreaView style={styles.container} edges={['bottom']}>
-      <ScrollView
-        showsVerticalScrollIndicator={false}
-        refreshControl={
-          <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
-        }
-      >
-        {/* Header Info */}
+      <ScrollView showsVerticalScrollIndicator={false}>
         <View style={styles.headerInfo}>
           <Text style={styles.headerTitle}>Henna Services</Text>
           <Text style={styles.headerSubtitle}>
@@ -113,22 +129,12 @@ export default function ServicesScreen() {
           </Text>
         </View>
 
-        {/* Services List */}
         <View style={styles.servicesList}>
           {services.map((service) => (
             <TouchableOpacity
               key={service.id}
               style={styles.serviceCard}
-              onPress={() =>
-                router.push({
-                  pathname: '/book',
-                  params: {
-                    serviceId: service.id,
-                    serviceName: service.name,
-                    isCustom: service.size === 'custom' ? 'true' : 'false',
-                  },
-                })
-              }
+              onPress={() => router.push('/book')}
             >
               <View style={styles.serviceHeader}>
                 <View style={styles.serviceIcon}>
@@ -150,11 +156,7 @@ export default function ServicesScreen() {
 
               <View style={styles.serviceFooter}>
                 <View style={styles.durationContainer}>
-                  <Ionicons
-                    name="time-outline"
-                    size={16}
-                    color="#888"
-                  />
+                  <Ionicons name="time-outline" size={16} color="#888" />
                   <Text style={styles.durationText}>
                     {formatDuration(service.duration_minutes)}
                   </Text>
@@ -180,37 +182,62 @@ export default function ServicesScreen() {
           ))}
         </View>
 
-        {/* Info Section */}
         <View style={styles.infoSection}>
           <View style={styles.infoCard}>
-            <Ionicons name="information-circle-outline" size={24} color={COLORS.primary} />
+            <Ionicons
+              name="information-circle-outline"
+              size={24}
+              color={COLORS.primary}
+            />
             <View style={styles.infoTextContainer}>
               <Text style={styles.infoTitle}>Custom Designs</Text>
               <Text style={styles.infoText}>
-                Have something special in mind? We create custom designs tailored to your preferences. Contact us for a personalized quote.
+                Have something special in mind? We create custom designs tailored
+                to your preferences. Contact us for a personalized quote.
               </Text>
             </View>
           </View>
         </View>
 
-        {/* Booking Note */}
         <View style={styles.noteSection}>
           <Text style={styles.noteTitle}>Booking Information</Text>
           <View style={styles.noteItem}>
-            <Ionicons name="checkmark-circle" size={18} color={COLORS.accent} />
-            <Text style={styles.noteText}>All prices are per hand/foot unless stated</Text>
+            <Ionicons
+              name="checkmark-circle"
+              size={18}
+              color={COLORS.accent}
+            />
+            <Text style={styles.noteText}>
+              All prices are per hand/foot unless stated
+            </Text>
           </View>
           <View style={styles.noteItem}>
-            <Ionicons name="checkmark-circle" size={18} color={COLORS.accent} />
-            <Text style={styles.noteText}>Bridal package includes hands, arms, legs, chest and back</Text>
+            <Ionicons
+              name="checkmark-circle"
+              size={18}
+              color={COLORS.accent}
+            />
+            <Text style={styles.noteText}>
+              Bridal package includes hands, arms, legs, chest and back
+            </Text>
           </View>
           <View style={styles.noteItem}>
-            <Ionicons name="checkmark-circle" size={18} color={COLORS.accent} />
+            <Ionicons
+              name="checkmark-circle"
+              size={18}
+              color={COLORS.accent}
+            />
             <Text style={styles.noteText}>Custom designs from +100–150 kr</Text>
           </View>
           <View style={styles.noteItem}>
-            <Ionicons name="checkmark-circle" size={18} color={COLORS.accent} />
-            <Text style={styles.noteText}>Mobile service available if you pay the travel expenses</Text>
+            <Ionicons
+              name="checkmark-circle"
+              size={18}
+              color={COLORS.accent}
+            />
+            <Text style={styles.noteText}>
+              Mobile service available if you pay the travel expenses
+            </Text>
           </View>
         </View>
       </ScrollView>
@@ -380,3 +407,8 @@ const styles = StyleSheet.create({
     color: '#666',
   },
 });
+
+    
+    
+ 
+              
