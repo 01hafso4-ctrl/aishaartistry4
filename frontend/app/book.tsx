@@ -1,22 +1,27 @@
-import { useEffect } from 'react';
-import { View, Text, Linking } from 'react-native';
+import React from 'react';
+import { View, Text, StyleSheet } from 'react-native';
 
 export default function Book() {
-  useEffect(() => {
-    Linking.openURL(
-      "https://www.fresha.com/book-now/aishaartistry4-fb058pbl/all-offer?share=true&pId=2853591"
-    );
-  }, []);
-
   return (
-    <View style={{ padding: 20 }}>
-      <Text>Opening booking...</Text>
+    <View style={styles.container}>
+      <Text style={styles.title}>Booking</Text>
+      <Text>Velg dato og tid (kommer snart)</Text>
     </View>
   );
 }
- 
-     
-    
+
+const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  title: {
+    fontSize: 24,
+    fontWeight: 'bold',
+    marginBottom: 10,
+  },
+});
       
    
  
