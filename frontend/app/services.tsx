@@ -42,7 +42,7 @@ export default function ServicesScreen() {
   const fetchServices = async () => {
     try {
       const { data, error } = await supabase
-        .from('services')
+        .from('Services')
         .select('*')
         .order('created_at', { ascending: true });
 
