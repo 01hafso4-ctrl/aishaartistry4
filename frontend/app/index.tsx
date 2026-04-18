@@ -15,7 +15,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { router } from 'expo-router';
 
 const { width } = Dimensions.get('window');
-const EXPO_PUBLIC_BACKEND_URL = process.env.EXPO_PUBLIC_BACKEND_URL;
+
 
 const COLORS = {
   primary: '#D4688A',
@@ -36,6 +36,16 @@ interface BusinessSettings {
   studio_address: string;
   about_text: string;
 }
+  const LOCAL_SETTINGS: BusinessSettings = {
+  business_name: 'Aishaartistry',
+  tagline: 'Beautiful Henna Art for Every Occasion',
+  phone: '00000000',
+  email: 'your@email.com',
+  instagram: '@aishaartistry',
+  studio_address: 'Norway',
+  about_text:
+    'Welcome to our henna studio! We create beautiful, intricate designs for all occasions.',
+};
 
 export default function HomeScreen() {
   const [settings, setSettings] = useState<BusinessSettings | null>(null);
