@@ -7,10 +7,13 @@ import {
   TouchableOpacity,
   ActivityIndicator,
   Image,
+  Alert,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { router } from 'expo-router';
+import * as ImagePicker from 'expo-image-picker';
+import * as FileSystem from 'expo-file-system';
 import { supabase } from '../lib/supabase';
 
 const COLORS = {
@@ -36,10 +39,35 @@ interface Service {
 export default function ServicesScreen() {
   const [services, setServices] = useState<Service[]>([]);
   const [loading, setLoading] = useState(true);
+  const [isAdmin, setIsAdmin] = useState(false);
+  const [uploadingId, setUploadingId] = useState<string | null>(null);
 
   useEffect(() => {
-    fetchServices();
+    initializeScreen();
   }, []);
+
+  const initializeScreen = async () => {
+    await checkAdmin();
+    await fetchServices();
+  };
+
+  const checkAdmin = async () => {
+    try {
+      const {
+        data: { user },
+        error,
+      } = await supabase.auth.getUser();
+
+      if (error) {
+        console.error('Error getting user:', error);
+        return;
+      }
+
+      setIsAdmin(user?.email === 'Hafsa_mohamud04@hotmail.com');
+    } catch (error) {
+      console.error('Error checking admin:', error);
+    }
+  };
 
   const fetchServices = async () => {
     try {
@@ -48,9 +76,6 @@ export default function ServicesScreen() {
         .select('*')
         .order('created_at', { ascending: true });
 
-      console.log('services data:', data);
-      console.log('services error:', error);
-
       if (error) throw error;
 
       setServices(data || []);
@@ -58,6 +83,82 @@ export default function ServicesScreen() {
       console.error('Error fetching services:', error);
     } finally {
       setLoading(false);
+    }
+  };
+
+  const pickAndUploadImage = async (serviceId: string) => {
+    try {
+      setUploadingId(serviceId);
+
+      const permissionResult =
+        await ImagePicker.requestMediaLibraryPermissionsAsync();
+
+      if (!permissionResult.granted) {
+        Alert.alert('Tillatelse mangler', 'Du må gi appen tilgang til bilder.');
+        return;
+      }
+
+      const result = await ImagePicker.launchImageLibraryAsync({
+        mediaTypes: ['images'],
+        allowsEditing: true,
+        quality: 0.8,
+      });
+
+      if (result.canceled || !result.assets?.length) return;
+
+      const asset = result.assets[0];
+      const fileUri = asset.uri;
+      const fileExt = fileUri.split('.').pop()?.toLowerCase() || 'jpg';
+      const fileName = `${serviceId}-${Date.now()}.${fileExt}`;
+      const filePath = `services/${fileName}`;
+
+      const base64 = await FileSystem.readAsStringAsync(fileUri, {
+        encoding: FileSystem.EncodingType.Base64,
+      });
+
+      const binary = global.atob ? global.atob(base64) : atob(base64);
+      const bytes = new Uint8Array(binary.length);
+
+      for (let i = 0; i < binary.length; i++) {
+        bytes[i] = binary.charCodeAt(i);
+      }
+
+      const contentType =
+        fileExt === 'png'
+          ? 'image/png'
+          : fileExt === 'webp'
+          ? 'image/webp'
+          : 'image/jpeg';
+
+      const { error: uploadError } = await supabase.storage
+        .from('service-images')
+        .upload(filePath, bytes, {
+          contentType,
+          upsert: true,
+        });
+
+      if (uploadError) throw uploadError;
+
+      const { data: publicUrlData } = supabase.storage
+        .from('service-images')
+        .getPublicUrl(filePath);
+
+      const publicUrl = publicUrlData.publicUrl;
+
+      const { error: updateError } = await supabase
+        .from('Services')
+        .update({ image_url: publicUrl })
+        .eq('id', serviceId);
+
+      if (updateError) throw updateError;
+
+      Alert.alert('Ferdig', 'Bildet ble lastet opp.');
+      await fetchServices();
+    } catch (error) {
+      console.error('Error uploading image:', error);
+      Alert.alert('Feil', 'Kunne ikke laste opp bilde.');
+    } finally {
+      setUploadingId(null);
     }
   };
 
@@ -126,6 +227,7 @@ export default function ServicesScreen() {
                       color={COLORS.primary}
                     />
                   </View>
+
                   <View style={styles.priceContainer}>
                     <Text style={styles.priceText}>
                       {formatPrice(service.price)}
@@ -134,6 +236,7 @@ export default function ServicesScreen() {
                 </View>
 
                 <Text style={styles.serviceName}>{service.name}</Text>
+
                 <Text style={styles.serviceDescription}>
                   {service.description}
                 </Text>
@@ -155,6 +258,32 @@ export default function ServicesScreen() {
                     color={COLORS.white}
                   />
                 </View>
+
+                {isAdmin ? (
+                  <TouchableOpacity
+                    style={styles.uploadButton}
+                    onPress={() => pickAndUploadImage(service.id)}
+                    disabled={uploadingId === service.id}
+                  >
+                    {uploadingId === service.id ? (
+                      <ActivityIndicator
+                        size="small"
+                        color={COLORS.primary}
+                      />
+                    ) : (
+                      <>
+                        <Ionicons
+                          name="image-outline"
+                          size={16}
+                          color={COLORS.primary}
+                        />
+                        <Text style={styles.uploadButtonText}>
+                          Last opp bilde
+                        </Text>
+                      </>
+                    )}
+                  </TouchableOpacity>
+                ) : null}
               </TouchableOpacity>
             ))
           )}
@@ -273,7 +402,7 @@ const styles = StyleSheet.create({
   },
   serviceImage: {
     width: '100%',
-    height: 180,
+    height: 220,
     borderRadius: 12,
     marginBottom: 16,
   },
@@ -342,6 +471,23 @@ const styles = StyleSheet.create({
     fontSize: 16,
     fontWeight: '600',
     color: COLORS.white,
+  },
+  uploadButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginTop: 12,
+    paddingVertical: 12,
+    borderRadius: 12,
+    borderWidth: 1,
+    borderColor: COLORS.primary,
+    backgroundColor: COLORS.lightBg,
+    gap: 8,
+  },
+  uploadButtonText: {
+    fontSize: 15,
+    fontWeight: '600',
+    color: COLORS.primary,
   },
   infoSection: {
     padding: 16,
