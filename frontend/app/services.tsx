@@ -6,6 +6,7 @@ import {
   ScrollView,
   TouchableOpacity,
   ActivityIndicator,
+  Image,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
@@ -28,6 +29,7 @@ interface Service {
   description: string;
   price: number;
   duration_minutes: number;
+  image_url?: string;
   created_at?: string;
 }
 
@@ -45,6 +47,9 @@ export default function ServicesScreen() {
         .from('Services')
         .select('*')
         .order('created_at', { ascending: true });
+
+      console.log('services data:', data);
+      console.log('services error:', error);
 
       if (error) throw error;
 
@@ -88,59 +93,71 @@ export default function ServicesScreen() {
         </View>
 
         <View style={styles.servicesList}>
-          {services.map((service) => (
-            <TouchableOpacity
-              key={service.id}
-              style={styles.serviceCard}
-              onPress={() =>
-                router.push({
-                  pathname: '/book',
-                  params: {
-                    serviceId: service.id,
-                    serviceName: service.name,
-                  },
-                })
-              }
-            >
-              <View style={styles.serviceHeader}>
-                <View style={styles.serviceIcon}>
+          {services.length === 0 ? (
+            <Text style={styles.emptyText}>No services available right now.</Text>
+          ) : (
+            services.map((service) => (
+              <TouchableOpacity
+                key={service.id}
+                style={styles.serviceCard}
+                onPress={() =>
+                  router.push({
+                    pathname: '/book',
+                    params: {
+                      serviceId: service.id,
+                      serviceName: service.name,
+                    },
+                  })
+                }
+              >
+                {service.image_url ? (
+                  <Image
+                    source={{ uri: service.image_url }}
+                    style={styles.serviceImage}
+                    resizeMode="cover"
+                  />
+                ) : null}
+
+                <View style={styles.serviceHeader}>
+                  <View style={styles.serviceIcon}>
+                    <Ionicons
+                      name="sparkles-outline"
+                      size={28}
+                      color={COLORS.primary}
+                    />
+                  </View>
+                  <View style={styles.priceContainer}>
+                    <Text style={styles.priceText}>
+                      {formatPrice(service.price)}
+                    </Text>
+                  </View>
+                </View>
+
+                <Text style={styles.serviceName}>{service.name}</Text>
+                <Text style={styles.serviceDescription}>
+                  {service.description}
+                </Text>
+
+                <View style={styles.serviceFooter}>
+                  <View style={styles.durationContainer}>
+                    <Ionicons name="time-outline" size={16} color="#888" />
+                    <Text style={styles.durationText}>
+                      {formatDuration(service.duration_minutes)}
+                    </Text>
+                  </View>
+                </View>
+
+                <View style={styles.bookButton}>
+                  <Text style={styles.bookButtonText}>Book Now</Text>
                   <Ionicons
-                    name="sparkles-outline"
-                    size={28}
-                    color={COLORS.primary}
+                    name="arrow-forward"
+                    size={16}
+                    color={COLORS.white}
                   />
                 </View>
-                <View style={styles.priceContainer}>
-                  <Text style={styles.priceText}>
-                    {formatPrice(service.price)}
-                  </Text>
-                </View>
-              </View>
-
-              <Text style={styles.serviceName}>{service.name}</Text>
-              <Text style={styles.serviceDescription}>
-                {service.description}
-              </Text>
-
-              <View style={styles.serviceFooter}>
-                <View style={styles.durationContainer}>
-                  <Ionicons name="time-outline" size={16} color="#888" />
-                  <Text style={styles.durationText}>
-                    {formatDuration(service.duration_minutes)}
-                  </Text>
-                </View>
-              </View>
-
-              <View style={styles.bookButton}>
-                <Text style={styles.bookButtonText}>Book Now</Text>
-                <Ionicons
-                  name="arrow-forward"
-                  size={16}
-                  color={COLORS.white}
-                />
-              </View>
-            </TouchableOpacity>
-          ))}
+              </TouchableOpacity>
+            ))
+          )}
         </View>
 
         <View style={styles.infoSection}>
@@ -162,6 +179,7 @@ export default function ServicesScreen() {
 
         <View style={styles.noteSection}>
           <Text style={styles.noteTitle}>Booking Information</Text>
+
           <View style={styles.noteItem}>
             <Ionicons
               name="checkmark-circle"
@@ -172,6 +190,7 @@ export default function ServicesScreen() {
               All prices are per hand/foot unless stated
             </Text>
           </View>
+
           <View style={styles.noteItem}>
             <Ionicons
               name="checkmark-circle"
@@ -182,6 +201,7 @@ export default function ServicesScreen() {
               Bridal package includes hands, arms, legs, chest and back
             </Text>
           </View>
+
           <View style={styles.noteItem}>
             <Ionicons
               name="checkmark-circle"
@@ -190,6 +210,7 @@ export default function ServicesScreen() {
             />
             <Text style={styles.noteText}>Custom designs from +100–150 kr</Text>
           </View>
+
           <View style={styles.noteItem}>
             <Ionicons
               name="checkmark-circle"
@@ -234,6 +255,12 @@ const styles = StyleSheet.create({
     padding: 16,
     gap: 16,
   },
+  emptyText: {
+    fontSize: 16,
+    color: '#666',
+    textAlign: 'center',
+    paddingVertical: 20,
+  },
   serviceCard: {
     backgroundColor: COLORS.white,
     borderRadius: 16,
@@ -243,6 +270,12 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.08,
     shadowRadius: 8,
     elevation: 3,
+  },
+  serviceImage: {
+    width: '100%',
+    height: 180,
+    borderRadius: 12,
+    marginBottom: 16,
   },
   serviceHeader: {
     flexDirection: 'row',
