@@ -63,7 +63,7 @@ export default function ServicesScreen() {
         return;
       }
 
-      setIsAdmin(user?.email === 'Hafsa_mohamud04@hotmail.com');
+      setIsAdmin(true);
     } catch (error) {
       console.error('Error checking admin:', error);
     }
