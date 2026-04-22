@@ -199,19 +199,10 @@ export default function ServicesScreen() {
             <Text style={styles.emptyText}>No services available right now.</Text>
           ) : (
             services.map((service) => (
-              <TouchableOpacity
-                key={service.id}
-                style={styles.serviceCard}
-                onPress={() =>
-                  router.push({
-                    pathname: '/book',
-                    params: {
-                      serviceId: service.id,
-                      serviceName: service.name,
-                    },
-                  })
-                }
-              >
+              <View
+  key={service.id}
+  style={styles.serviceCard}
+>
                 {service.image_url ? (
                   <Image
                     source={{ uri: service.image_url }}
@@ -261,10 +252,12 @@ export default function ServicesScreen() {
                 </View>
                 {isAdmin ? (
   <TouchableOpacity
-    style={styles.uploadButton}
-    onPress={() => pickAndUploadImage(service.id)}
-    disabled={uploadingId === service.id}
-  >
+  style={styles.uploadButton}
+  onPress={() => {
+    alert('knappen funker!');
+  }}
+  disabled={uploadingId === service.id}
+>
     {uploadingId === service.id ? (
       <ActivityIndicator size="small" color={COLORS.primary} />
     ) : (
