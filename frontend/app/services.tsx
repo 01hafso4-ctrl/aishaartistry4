@@ -186,6 +186,7 @@ export default function ServicesScreen() {
   return (
     <SafeAreaView style={styles.container} edges={['bottom']}>
       <ScrollView showsVerticalScrollIndicator={false}>
+        <Text style={{ fontSize: 30, color: 'red' }}>TEST TEST TEST</Text>
         <View style={styles.headerInfo}>
           <Text style={styles.headerTitle}>Henna Services</Text>
           <Text style={styles.headerSubtitle}>
@@ -258,6 +259,7 @@ export default function ServicesScreen() {
                     color={COLORS.white}
                   />
                 </View>
+                <Text style={{ color: 'blue', fontSize: 20 }}>UPLOAD TEST</Text>
 
                 {isAdmin ? (
                   <TouchableOpacity
