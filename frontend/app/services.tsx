@@ -259,7 +259,28 @@ export default function ServicesScreen() {
                     color={COLORS.white}
                   />
                 </View>
-                <Text style={{ color: 'blue', fontSize: 20 }}>UPLOAD TEST</Text>
+                {isAdmin ? (
+  <TouchableOpacity
+    style={styles.uploadButton}
+    onPress={() => pickAndUploadImage(service.id)}
+    disabled={uploadingId === service.id}
+  >
+    {uploadingId === service.id ? (
+      <ActivityIndicator size="small" color={COLORS.primary} />
+    ) : (
+      <>
+        <Ionicons
+          name="image-outline"
+          size={16}
+          color={COLORS.primary}
+        />
+        <Text style={styles.uploadButtonText}>
+          Last opp bilde
+        </Text>
+      </>
+    )}
+  </TouchableOpacity>
+) : null}
 
                 {isAdmin ? (
                   <TouchableOpacity
