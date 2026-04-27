@@ -298,9 +298,8 @@ export default function ServicesScreen() {
                         </Text>
                       </>
                     )}
-                  </TouchableOpacity>
                 ) : null}
-              </TouchableOpacity>
+              </View>
             ))
           )}
         </View>
