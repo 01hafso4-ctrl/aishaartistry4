@@ -1,5 +1,17 @@
 import React, { useEffect, useState } from 'react';
+
 import {
+  View,
+  Text,
+  StyleSheet,
+  ScrollView,
+  TouchableOpacity,
+  ActivityIndicator,
+  Image,
+  Alert,
+} from 'react-native';
+
+import { router } from 'expo-router';
   View,
   Text,
   StyleSheet,
@@ -242,14 +254,17 @@ export default function ServicesScreen() {
                   </View>
                 </View>
 
-                <TouchableOpacity style={styles.bookButton}>
-                  <Text style={styles.bookButtonText}>Book Now</Text>
-                  <Ionicons
-                    name="arrow-forward"
-                    size={16}
-                    color={COLORS.white}
-                  />
-                </TouchableOpacity>
+                <TouchableOpacity
+  style={styles.bookButton}
+  onPress={() => router.push('/book')}
+>
+  <Text style={styles.bookButtonText}>Book Now</Text>
+  <Ionicons
+    name="arrow-forward"
+    size={16}
+    color={COLORS.white}
+  />
+</TouchableOpacity>
 
                 {isAdmin ? (
                   <TouchableOpacity
