@@ -1,5 +1,4 @@
 import React, { useEffect, useState } from 'react';
-
 import {
   View,
   Text,
@@ -11,19 +10,12 @@ import {
   Alert,
 } from 'react-native';
 
-import { router } from 'expo-router';
-  View,
-  Text,
-  StyleSheet,
-  ScrollView,
-  TouchableOpacity,
-  ActivityIndicator,
-  Image,
-  Alert,
-} from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
+import { router } from 'expo-router';
 import * as ImagePicker from 'expo-image-picker';
+import * as FileSystem from 'expo-file-system';
+import { supabase } from '../lib/supabase';
 import * as FileSystem from 'expo-file-system';
 import { supabase } from '../lib/supabase';
 
