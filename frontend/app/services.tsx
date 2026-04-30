@@ -16,9 +16,6 @@ import { router } from 'expo-router';
 import * as ImagePicker from 'expo-image-picker';
 import * as FileSystem from 'expo-file-system';
 import { supabase } from '../lib/supabase';
-import * as FileSystem from 'expo-file-system';
-import { supabase } from '../lib/supabase';
-
 const COLORS = {
   primary: '#D4688A',
   secondary: '#F5C6D0',
