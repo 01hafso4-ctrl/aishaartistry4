@@ -151,7 +151,7 @@ export default function AdminScreen() {
   return (
     <SafeAreaView style={styles.container} edges={['bottom']}>
       <ScrollView contentContainerStyle={styles.content}>
-        <Text style={styles.title}>Admin</Text>
+        <Text style={styles.title}>NY ADMIN SIDE</Text>
         <Text style={styles.subtitle}>Manage bookings and available times</Text>
 
         <View style={styles.card}>
