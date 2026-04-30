@@ -11,7 +11,6 @@ import {
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
-import { router } from 'expo-router';
 import * as ImagePicker from 'expo-image-picker';
 import * as FileSystem from 'expo-file-system';
 import { supabase } from '../lib/supabase';
@@ -60,12 +59,14 @@ export default function ServicesScreen() {
 
       if (error) {
         console.error('Error getting user:', error);
+        setIsAdmin(false);
         return;
       }
 
-      setIsAdmin(true);
+      setIsAdmin(!!user);
     } catch (error) {
       console.error('Error checking admin:', error);
+      setIsAdmin(false);
     }
   };
 
@@ -81,6 +82,7 @@ export default function ServicesScreen() {
       setServices(data || []);
     } catch (error) {
       console.error('Error fetching services:', error);
+      Alert.alert('Feil', 'Kunne ikke hente tjenester.');
     } finally {
       setLoading(false);
     }
@@ -94,12 +96,12 @@ export default function ServicesScreen() {
         await ImagePicker.requestMediaLibraryPermissionsAsync();
 
       if (!permissionResult.granted) {
-        Alert.alert('Tillatelse mangler', 'Du må gi appen tilgang til bilder.');
+        Alert.alert('Tillatelse mangler', 'Du må gi tilgang til bilder.');
         return;
       }
 
       const result = await ImagePicker.launchImageLibraryAsync({
-        mediaTypes: ['images'],
+        mediaTypes: ImagePicker.MediaTypeOptions.Images,
         allowsEditing: true,
         quality: 0.8,
       });
@@ -116,11 +118,11 @@ export default function ServicesScreen() {
         encoding: FileSystem.EncodingType.Base64,
       });
 
-      const binary = global.atob ? global.atob(base64) : atob(base64);
-      const bytes = new Uint8Array(binary.length);
+      const binaryString = atob(base64);
+      const bytes = new Uint8Array(binaryString.length);
 
-      for (let i = 0; i < binary.length; i++) {
-        bytes[i] = binary.charCodeAt(i);
+      for (let i = 0; i < binaryString.length; i++) {
+        bytes[i] = binaryString.charCodeAt(i);
       }
 
       const contentType =
@@ -163,15 +165,17 @@ export default function ServicesScreen() {
   };
 
   const formatDuration = (minutes: number) => {
-    if (!minutes || minutes === 0) return 'Varies';
+    if (!minutes || minutes === 0) return 'Varierer';
     if (minutes < 60) return `${minutes} min`;
+
     const hours = Math.floor(minutes / 60);
     const mins = minutes % 60;
-    return mins > 0 ? `${hours}h ${mins}m` : `${hours}h`;
+
+    return mins > 0 ? `${hours}t ${mins}m` : `${hours}t`;
   };
 
   const formatPrice = (price: number) => {
-    if (!price || price === 0) return 'Get Quote';
+    if (!price || price === 0) return 'Pris på forespørsel';
     return `${price.toFixed(0)} kr`;
   };
 
@@ -186,7 +190,6 @@ export default function ServicesScreen() {
   return (
     <SafeAreaView style={styles.container} edges={['bottom']}>
       <ScrollView showsVerticalScrollIndicator={false}>
-        <Text style={{ fontSize: 30, color: 'red' }}>TEST TEST TEST</Text>
         <View style={styles.headerInfo}>
           <Text style={styles.headerTitle}>Henna Services</Text>
           <Text style={styles.headerSubtitle}>
@@ -199,10 +202,7 @@ export default function ServicesScreen() {
             <Text style={styles.emptyText}>No services available right now.</Text>
           ) : (
             services.map((service) => (
-              <View
-  key={service.id}
-  style={styles.serviceCard}
->
+              <View key={service.id} style={styles.serviceCard}>
                 {service.image_url ? (
                   <Image
                     source={{ uri: service.image_url }}
@@ -242,38 +242,14 @@ export default function ServicesScreen() {
                   </View>
                 </View>
 
-                <View style={styles.bookButton}>
+                <TouchableOpacity style={styles.bookButton}>
                   <Text style={styles.bookButtonText}>Book Now</Text>
                   <Ionicons
                     name="arrow-forward"
                     size={16}
                     color={COLORS.white}
                   />
-                </View>
-                {isAdmin ? (
-  <TouchableOpacity
-  style={styles.uploadButton}
-  onPress={() => {
-    alert('knappen funker!');
-  }}
-  disabled={uploadingId === service.id}
->
-    {uploadingId === service.id ? (
-      <ActivityIndicator size="small" color={COLORS.primary} />
-    ) : (
-      <>
-        <Ionicons
-          name="image-outline"
-          size={16}
-          color={COLORS.primary}
-        />
-        <Text style={styles.uploadButtonText}>
-          Last opp bilde
-        </Text>
-      </>
-    )}
-  </TouchableOpacity>
-) : null}
+                </TouchableOpacity>
 
                 {isAdmin ? (
                   <TouchableOpacity
@@ -282,10 +258,7 @@ export default function ServicesScreen() {
                     disabled={uploadingId === service.id}
                   >
                     {uploadingId === service.id ? (
-                      <ActivityIndicator
-                        size="small"
-                        color={COLORS.primary}
-                      />
+                      <ActivityIndicator size="small" color={COLORS.primary} />
                     ) : (
                       <>
                         <Ionicons
@@ -298,6 +271,7 @@ export default function ServicesScreen() {
                         </Text>
                       </>
                     )}
+                  </TouchableOpacity>
                 ) : null}
               </View>
             ))
