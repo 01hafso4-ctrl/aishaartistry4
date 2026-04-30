@@ -42,9 +42,15 @@ export default function ServicesScreen() {
   const [isAdmin, setIsAdmin] = useState(false);
   const [uploadingId, setUploadingId] = useState<string | null>(null);
 
-  useEffect(() => {
-    initializeScreen();
-  }, []);
+useEffect(() => {
+  initializeScreen();
+}, []);
+
+const initializeScreen = async () => {
+  await checkAdmin();
+  await fetchServices();
+};
+
 const checkAdmin = async () => {
   setIsAdmin(true);
 };
