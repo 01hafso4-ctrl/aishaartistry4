@@ -45,33 +45,11 @@ export default function ServicesScreen() {
   useEffect(() => {
     initializeScreen();
   }, []);
+const checkAdmin = async () => {
+  setIsAdmin(true);
+};
 
-  const initializeScreen = async () => {
-    await checkAdmin();
-    await fetchServices();
-  };
-
-  const checkAdmin = async () => {
-    try {
-      const {
-        data: { user },
-        error,
-      } = await supabase.auth.getUser();
-
-      if (error) {
-        console.error('Error getting user:', error);
-        setIsAdmin(false);
-        return;
-      }
-
-      setIsAdmin(!!user);
-    } catch (error) {
-      console.error('Error checking admin:', error);
-      setIsAdmin(false);
-    }
-  };
-
-  const fetchServices = async () => {
+const fetchServices = async () => {
     try {
       const { data, error } = await supabase
         .from('Services')
